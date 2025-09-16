@@ -1,0 +1,55 @@
+import React from "react";
+
+const Header = ({ language, toggleLanguage }) => {
+  return (
+    <header style={{ 
+      background: 'var(--white)', 
+      padding: '20px 0',
+      borderBottom: '1px solid var(--border-light)'
+    }}>
+      <div className="container">
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center' 
+        }}>
+          <div>
+            <img 
+              src="https://customer-assets.emergentagent.com/job_cd4bdb57-a937-4f3c-8471-d99cd1e3f0ea/artifacts/2qfih5n9_Pymetra_logo_sinfondo_2.PNG"
+              alt="Pymetra"
+              style={{ height: '50px' }}
+            />
+          </div>
+          <div>
+            <button
+              onClick={toggleLanguage}
+              style={{
+                background: 'transparent',
+                border: '2px solid var(--pymetra-dark-green)',
+                borderRadius: '8px',
+                padding: '8px 16px',
+                fontFamily: 'Montserrat, sans-serif',
+                fontWeight: '600',
+                color: 'var(--pymetra-dark-green)',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.background = 'var(--pymetra-dark-green)';
+                e.target.style.color = 'var(--white)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.background = 'transparent';
+                e.target.style.color = 'var(--pymetra-dark-green)';
+              }}
+            >
+              {language === 'es' ? 'EN' : 'ES'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+};
+
+export default Header;
