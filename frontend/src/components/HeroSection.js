@@ -1,6 +1,16 @@
-import React from "react";
+import React, { useEffect } from "react";
 
 const HeroSection = ({ language }) => {
+  // Precargar la imagen para carga más rápida
+  const preloadImage = () => {
+    const img = new Image();
+    img.src = "https://customer-assets.emergentagent.com/job_sales-portal-17/artifacts/j37inyl3_ChatGPT%20Image%2018%20set%202025%2C%2015_38_20.png";
+  };
+
+  // Ejecutar precarga cuando se monta el componente
+  useEffect(() => {
+    preloadImage();
+  }, []);
   const content = {
     es: {
       title: "Más ventas, menos esfuerzo: conecta con PYMEs europeas.",
