@@ -43,8 +43,8 @@ const HeroSection = ({ language }) => {
               src="https://customer-assets.emergentagent.com/job_sales-portal-17/artifacts/j37inyl3_ChatGPT%20Image%2018%20set%202025%2C%2015_38_20.png"
               alt="Símbolo Pymetra"
               style={{ 
-                width: '120px', 
-                height: '120px',
+                width: '200px', 
+                height: '200px',
                 objectFit: 'contain',
                 display: 'block',
                 margin: '0 auto'
