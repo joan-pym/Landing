@@ -29,7 +29,17 @@ const HeroSection = ({ language }) => {
       <div className="container">
         <div className="fade-in-up">
           <div style={{ marginBottom: '0px' }}>
-            <PymetraSymbol size={120} />
+            <img 
+              src="https://customer-assets.emergentagent.com/job_sales-portal-17/artifacts/j37inyl3_ChatGPT%20Image%2018%20set%202025%2C%2015_38_20.png"
+              alt="Símbolo Pymetra"
+              style={{ 
+                width: '120px', 
+                height: '120px',
+                objectFit: 'contain',
+                display: 'block',
+                margin: '0 auto'
+              }}
+            />
           </div>
           <h1 
             className="display-lg"
