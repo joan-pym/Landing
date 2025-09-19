@@ -1,4 +1,5 @@
 import React from "react";
+import PymetraSymbol from "./PymetraSymbol";
 
 const HeroSection = ({ language }) => {
   const content = {
