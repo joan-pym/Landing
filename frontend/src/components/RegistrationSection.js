@@ -14,6 +14,9 @@ const RegistrationSection = ({ language }) => {
     cv: null
   });
 
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState('');
+
   const content = {
     es: {
       title: "Únete a Pymetra",
