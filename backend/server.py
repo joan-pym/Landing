@@ -7,6 +7,7 @@ import logging
 from pathlib import Path
 from routes.registration import router as registration_router
 from routes.admin import router as admin_router
+from routes.auth import router as auth_router
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -23,9 +24,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include registration routes
+# Include all routes
 app.include_router(registration_router)
 app.include_router(admin_router)
+app.include_router(auth_router)
 
 # Health check endpoint
 @app.get("/api/health")
