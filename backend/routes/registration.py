@@ -77,18 +77,43 @@ async def register_agent(
         # Save to database
         registration_id = await db_service.save_registration(registration)
         
-        # Send email notification in background
-        background_tasks.add_task(
-            email_service.send_registration_notification,
-            registration,
-            cv_file_path
-        )
+        # Initialize result tracking
+        google_sheets_saved = False
+        google_drive_uploaded = False
+        google_email_sent = False
+        
+        # Try Google APIs integration if authenticated
+        if google_service.is_authenticated():
+            try:
+                # Save to Google Sheets
+                google_sheets_saved = await google_service.save_to_sheets(registration)
+                logger.info(f"Google Sheets save result: {google_sheets_saved}")
+                
+                # Upload CV to Google Drive
+                drive_result = await google_service.upload_to_drive(cv_content, cv.filename, email)
+                google_drive_uploaded = drive_result is not None
+                logger.info(f"Google Drive upload result: {google_drive_uploaded}")
+                
+                # Send Gmail notification
+                google_email_sent = await google_service.send_gmail_notification(registration, drive_result)
+                logger.info(f"Gmail notification result: {google_email_sent}")
+                
+            except Exception as e:
+                logger.error(f"Google APIs integration error: {str(e)}")
+        
+        # Fallback: Send email notification via SMTP if Google failed
+        if not google_email_sent:
+            background_tasks.add_task(
+                email_service.send_registration_notification,
+                registration,
+                cv_file_path
+            )
         
         return AgentRegistrationResponse(
-            message="Registro completado exitosamente",
+            message="Registro completado exitosamente" + (" - Datos guardados en Google Sheets y Drive" if google_sheets_saved and google_drive_uploaded else " - Datos guardados localmente"),
             registration_id=registration_id,
-            email_sent=True,
-            cv_saved=cv_file_path is not None
+            email_sent=google_email_sent or True,  # Either Google or SMTP
+            cv_saved=google_drive_uploaded or (cv_file_path is not None)
         )
         
     except HTTPException:
