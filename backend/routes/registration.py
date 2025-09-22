@@ -15,6 +15,7 @@ from models import AgentRegistration, AgentRegistrationResponse
 from services.database_service import DatabaseService
 from services.file_service import FileService
 from services.email_service import EmailService
+from services.google_apis_service import GoogleAPIsService
 
 logger = logging.getLogger(__name__)
 
