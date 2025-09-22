@@ -22,83 +22,156 @@ export_service = ExportService()
 
 @router.get("/", response_class=HTMLResponse)
 async def admin_dashboard():
-    """Simple admin dashboard"""
+    """Enhanced admin dashboard with Google APIs integration"""
     try:
         count = await db_service.get_registrations_count()
-        registrations = await db_service.get_all_registrations(limit=10)
+        registrations = await db_service.get_all_registrations(limit=20)
+        
+        # Check Google APIs authentication status
+        from services.google_apis_service import GoogleAPIsService
+        google_service = GoogleAPIsService()
+        is_google_authenticated = google_service.is_authenticated()
+        
+        auth_status_html = ""
+        if is_google_authenticated:
+            auth_status_html = """
+            <div style="background: #d4edda; color: #155724; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                ✅ <strong>Google APIs Autenticadas</strong> - Sheets, Drive, Gmail funcionando
+            </div>
+            """
+        else:
+            auth_status_html = """
+            <div style="background: #f8d7da; color: #721c24; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                ❌ <strong>Google APIs No Autenticadas</strong> 
+                <br><a href="/auth/google/login" style="color: #721c24; font-weight: bold;">Hacer clic aquí para autenticar</a>
+            </div>
+            """
         
         html_content = f"""
         <!DOCTYPE html>
         <html>
         <head>
-            <title>Pymetra Admin - Registrations</title>
+            <title>Pymetra Admin - Panel de Control</title>
             <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
             <style>
-                body {{ font-family: Arial, sans-serif; margin: 40px; background: #f5f5f5; }}
-                .container {{ max-width: 1200px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }}
-                h1 {{ color: #0C3C32; margin-bottom: 30px; }}
-                .stats {{ background: #F39200; color: white; padding: 20px; border-radius: 8px; margin-bottom: 30px; }}
-                .export-buttons {{ margin-bottom: 30px; }}
-                .btn {{ background: #0C3C32; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin-right: 10px; display: inline-block; }}
-                .btn:hover {{ background: #1a5d4f; }}
+                body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; background: #f8f9fa; }}
+                .container {{ max-width: 1400px; margin: 0 auto; padding: 30px; }}
+                .header {{ background: linear-gradient(135deg, #0C3C32, #1a5d4f); color: white; padding: 40px; border-radius: 12px; margin-bottom: 30px; text-align: center; }}
+                .header h1 {{ margin: 0; font-size: 2.5rem; font-weight: 700; }}
+                .header p {{ margin: 10px 0 0; opacity: 0.9; font-size: 1.1rem; }}
+                .stats-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px; }}
+                .stat-card {{ background: white; padding: 30px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); text-align: center; }}
+                .stat-number {{ font-size: 3rem; font-weight: 700; color: #F39200; margin-bottom: 10px; }}
+                .stat-label {{ color: #666; font-size: 1.1rem; }}
+                .actions {{ background: white; padding: 30px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); margin-bottom: 30px; }}
+                .btn {{ background: #0C3C32; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; margin-right: 15px; margin-bottom: 10px; display: inline-block; font-weight: 600; transition: all 0.3s; }}
+                .btn:hover {{ background: #1a5d4f; transform: translateY(-2px); }}
                 .btn-orange {{ background: #F39200; }}
                 .btn-orange:hover {{ background: #e08600; }}
-                table {{ width: 100%; border-collapse: collapse; margin-top: 20px; }}
-                th, td {{ padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }}
-                th {{ background-color: #f8f9fa; font-weight: bold; }}
-                tr:hover {{ background-color: #f5f5f5; }}
+                .btn-danger {{ background: #dc3545; }}
+                .btn-danger:hover {{ background: #c82333; }}
+                .table-container {{ background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.08); }}
+                table {{ width: 100%; border-collapse: collapse; }}
+                th {{ background: #f8f9fa; padding: 20px; text-align: left; font-weight: 600; border-bottom: 2px solid #dee2e6; }}
+                td {{ padding: 15px 20px; border-bottom: 1px solid #dee2e6; }}
+                tr:hover {{ background: #f8f9fa; }}
                 .timestamp {{ font-size: 0.9em; color: #666; }}
+                .cv-link {{ color: #F39200; text-decoration: none; font-weight: 500; }}
+                .cv-link:hover {{ color: #e08600; }}
+                .status {{ padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }}
+                .status-pending {{ background: #fff3cd; color: #856404; }}
+                .status-active {{ background: #d4edda; color: #155724; }}
+                @media (max-width: 768px) {{
+                    .container {{ padding: 15px; }}
+                    .header {{ padding: 20px; }}
+                    .header h1 {{ font-size: 2rem; }}
+                    .stats-grid {{ grid-template-columns: 1fr; }}
+                    .btn {{ display: block; margin-bottom: 10px; text-align: center; }}
+                    table, thead, tbody, th, td, tr {{ display: block; }}
+                    thead tr {{ position: absolute; top: -9999px; left: -9999px; }}
+                    tr {{ border: 1px solid #ccc; margin-bottom: 10px; padding: 10px; }}
+                    td {{ border: none; position: relative; padding-left: 30%; }}
+                    td:before {{ content: attr(data-label) ": "; position: absolute; left: 6px; width: 25%; text-align: right; font-weight: bold; }}
+                }}
             </style>
         </head>
         <body>
             <div class="container">
-                <h1>🚀 Pymetra Admin - Panel de Registros</h1>
-                
-                <div class="stats">
-                    <h2>📊 Estadísticas</h2>
-                    <p><strong>Total de registros:</strong> {count}</p>
+                <div class="header">
+                    <h1>🚀 Pymetra - Panel de Administración</h1>
+                    <p>Control total de registros y datos de agentes</p>
                 </div>
                 
-                <div class="export-buttons">
-                    <h3>📥 Exportar Datos</h3>
-                    <a href="/admin/export/csv" class="btn">Descargar CSV</a>
-                    <a href="/admin/export/google-sheets-data" class="btn btn-orange">Ver datos para Google Sheets</a>
+                {auth_status_html}
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number">{count}</div>
+                        <div class="stat-label">Registros Totales</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">{"✅" if is_google_authenticated else "❌"}</div>
+                        <div class="stat-label">Google APIs</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">🌐</div>
+                        <div class="stat-label">Sistema Activo</div>
+                    </div>
                 </div>
                 
-                <h3>📋 Últimos Registros</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Nombre</th>
-                            <th>Email</th>
-                            <th>Zona</th>
-                            <th>Sector</th>
-                            <th>Fecha</th>
-                            <th>CV</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+                <div class="actions">
+                    <h3 style="margin-top: 0; color: #0C3C32;">📊 Exportar y Gestionar Datos</h3>
+                    <a href="/admin/export/csv" class="btn">📥 Descargar CSV Completo</a>
+                    <a href="/admin/export/google-sheets-data" class="btn btn-orange">📋 Ver Datos para Google Sheets</a>
+                    {"" if is_google_authenticated else '<a href="/auth/google/login" class="btn btn-orange">🔑 Autenticar Google APIs</a>'}
+                    <a href="/auth/status" class="btn">🔍 Estado Autenticación</a>
+                </div>
+                
+                <div class="table-container">
+                    <h3 style="margin: 20px; color: #0C3C32;">📋 Últimos Registros</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Agente</th>
+                                <th>Contacto</th>
+                                <th>Ubicación</th>
+                                <th>Sector</th>
+                                <th>Fecha Registro</th>
+                                <th>CV</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
         """
         
         for reg in registrations:
-            cv_link = f'<a href="/admin/download-cv/{reg.id}">📄 {reg.cv_filename}</a>' if reg.cv_filename else 'No CV'
+            cv_link = f'<a href="/admin/download-cv/{reg.id}" class="cv-link">📄 {reg.cv_filename}</a>' if reg.cv_filename else '<span style="color: #999;">Sin CV</span>'
+            status_class = "status-active" if reg.status == "active" else "status-pending"
+            
             html_content += f"""
-                        <tr>
-                            <td><strong>{reg.full_name}</strong></td>
-                            <td>{reg.email}</td>
-                            <td>{reg.geographic_area}</td>
-                            <td>{reg.main_sector}</td>
-                            <td class="timestamp">{reg.timestamp.strftime('%d/%m/%Y %H:%M')}</td>
-                            <td>{cv_link}</td>
-                        </tr>
+                            <tr>
+                                <td data-label="Agente"><strong>{reg.full_name}</strong></td>
+                                <td data-label="Contacto">{reg.email}</td>
+                                <td data-label="Ubicación">{reg.geographic_area}</td>
+                                <td data-label="Sector">{reg.main_sector}</td>
+                                <td data-label="Fecha" class="timestamp">{reg.timestamp.strftime('%d/%m/%Y %H:%M')}</td>
+                                <td data-label="CV">{cv_link}</td>
+                                <td data-label="Estado"><span class="status {status_class}">{reg.status.title()}</span></td>
+                            </tr>
             """
         
         html_content += """
-                    </tbody>
-                </table>
+                        </tbody>
+                    </table>
+                </div>
                 
                 <div style="margin-top: 40px; text-align: center; color: #666;">
-                    <p>🔄 Actualiza la página para ver nuevos registros</p>
+                    <p>🔄 <a href="/admin" style="color: #F39200;">Actualizar página</a> para ver nuevos registros</p>
+                    <p style="margin-top: 20px; font-size: 0.9rem;">
+                        Panel de administración Pymetra • 
+                        <a href="https://pymetra.com" style="color: #0C3C32;">Ir a la web</a>
+                    </p>
                 </div>
             </div>
         </body>
