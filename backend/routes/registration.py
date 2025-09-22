@@ -25,6 +25,7 @@ router = APIRouter(prefix="/api", tags=["registration"])
 db_service = DatabaseService()
 file_service = FileService()
 email_service = EmailService()
+google_service = GoogleAPIsService()
 
 @router.post("/register-agent", response_model=AgentRegistrationResponse)
 async def register_agent(
