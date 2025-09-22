@@ -13,8 +13,8 @@ const LandingPage = () => {
   // Update page title based on language
   useEffect(() => {
     const titles = {
-      es: "🎈 Pymetra - Conecta con PYMEs Europeas",
-      en: "🎈 Pymetra - Connect with European SMEs"
+      es: "Pymetra - Conecta con PYMEs Europeas",
+      en: "Pymetra - Connect with European SMEs"
     };
     document.title = titles[language];
   }, [language]);
