@@ -167,7 +167,7 @@ async def admin_dashboard():
                 </div>
                 
                 <div style="margin-top: 40px; text-align: center; color: #666;">
-                    <p>🔄 <a href="/admin" style="color: #F39200;">Actualizar página</a> para ver nuevos registros</p>
+                    <p>🔄 <a href="/api/admin" style="color: #F39200;">Actualizar página</a> para ver nuevos registros</p>
                     <p style="margin-top: 20px; font-size: 0.9rem;">
                         Panel de administración Pymetra • 
                         <a href="https://pymetra.com" style="color: #0C3C32;">Ir a la web</a>
