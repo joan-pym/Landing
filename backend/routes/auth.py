@@ -120,7 +120,7 @@ async def google_callback(
                     <li>Gmail API - Enviar notificaciones</li>
                 </ul>
                 <br><br>
-                <a href="http://localhost:8001/admin" class="btn">Ir al Panel Admin</a>
+                <a href="/api/admin" class="btn">Ir al Panel Admin</a>
                 <a href="http://localhost:3000" class="btn" style="margin-left: 10px;">Ir a la Web</a>
             </div>
         </body>
