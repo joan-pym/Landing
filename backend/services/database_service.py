@@ -1,5 +1,16 @@
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
+from pathlib import Path
+from dotenv import load_dotenv
+import sys
+
+# Add the backend directory to the path
+sys.path.append(str(Path(__file__).parent.parent))
+
+# Load environment variables
+ROOT_DIR = Path(__file__).parent.parent
+load_dotenv(ROOT_DIR / '.env')
+
 from models import AgentRegistration
 from typing import List, Optional
 import logging
