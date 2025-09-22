@@ -262,10 +262,24 @@ const RegistrationSection = ({ language }) => {
               </div>
             </div>
 
-            <button type="submit" className="btn-primary" style={{ width: '100%', marginTop: '24px' }}>
-              {content[language].cta}
+            <button type="submit" className="btn-primary" style={{ width: '100%', marginTop: '24px' }} disabled={loading}>
+              {loading ? (language === 'es' ? 'Enviando...' : 'Submitting...') : content[language].cta}
             </button>
           </form>
+          
+          {message && (
+            <div style={{
+              marginTop: '20px',
+              padding: '16px',
+              borderRadius: '8px',
+              textAlign: 'center',
+              backgroundColor: message.includes('Error') || message.includes('error') ? '#fee' : '#efe',
+              color: message.includes('Error') || message.includes('error') ? '#c33' : '#363',
+              border: `1px solid ${message.includes('Error') || message.includes('error') ? '#fcc' : '#cfc'}`
+            }}>
+              {message}
+            </div>
+          )}
         </div>
       </div>
     </section>
