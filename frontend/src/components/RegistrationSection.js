@@ -80,21 +80,58 @@ const RegistrationSection = ({ language }) => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Mock form submission - this will be replaced with actual Google Sheets/Gmail integration
-    console.log('Form submitted:', formData);
-    alert(content[language].successMessage);
-    
-    // Reset form
-    setFormData({
-      fullName: '',
-      email: '',
-      geographicArea: '',
-      mainSector: '',
-      cv: null
-    });
-    e.target.reset();
+    setLoading(true);
+    setMessage('');
+
+    try {
+      // Create FormData for file upload
+      const submitData = new FormData();
+      submitData.append('fullName', formData.fullName);
+      submitData.append('email', formData.email);
+      submitData.append('geographicArea', formData.geographicArea);
+      submitData.append('mainSector', formData.mainSector);
+      submitData.append('language', language);
+      submitData.append('cv', formData.cv);
+
+      // Submit to backend
+      const response = await axios.post(`${API}/register-agent`, submitData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        timeout: 30000 // 30 second timeout
+      });
+
+      // Show success message
+      setMessage(content[language].successMessage);
+      
+      // Reset form
+      setFormData({
+        fullName: '',
+        email: '',
+        geographicArea: '',
+        mainSector: '',
+        cv: null
+      });
+      e.target.reset();
+
+    } catch (error) {
+      console.error('Submission error:', error);
+      
+      let errorMessage = 'Error al enviar el formulario. Inténtalo de nuevo.';
+      if (language === 'en') {
+        errorMessage = 'Error submitting form. Please try again.';
+      }
+      
+      if (error.response?.data?.detail) {
+        errorMessage = error.response.data.detail;
+      }
+      
+      setMessage(errorMessage);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
