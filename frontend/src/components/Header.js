@@ -15,9 +15,9 @@ const Header = ({ language, toggleLanguage }) => {
         }}>
           <div>
             <img 
-              src="https://customer-assets.emergentagent.com/job_cd4bdb57-a937-4f3c-8471-d99cd1e3f0ea/artifacts/2qfih5n9_Pymetra_logo_sinfondo_2.PNG"
+              src="https://customer-assets.emergentagent.com/job_sales-portal-17/artifacts/al407wc2_pymetra_balloon_200x800.png"
               alt="Pymetra"
-              style={{ height: '80px' }}
+              style={{ height: '60px', objectFit: 'contain' }}
             />
           </div>
           <div>
