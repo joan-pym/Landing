@@ -19,19 +19,66 @@ oauth_service = OAuthService()
 
 @router.get("/google/login")
 async def google_login():
-    """Initiate Google OAuth flow"""
+    """Initiate Google OAuth flow with automatic redirect"""
     try:
         authorization_url, state = oauth_service.get_authorization_url()
         
-        return {
-            "authorization_url": authorization_url,
-            "state": state,
-            "message": "Redirect to authorization_url to complete authentication"
-        }
+        # Return HTML page that redirects automatically
+        return HTMLResponse(content=f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Pymetra - Redirigiendo a Google...</title>
+            <meta charset="utf-8">
+            <meta http-equiv="refresh" content="0; url={authorization_url}">
+            <style>
+                body {{ font-family: Arial, sans-serif; text-align: center; margin: 50px; background: #f5f5f5; }}
+                .container {{ max-width: 600px; margin: 0 auto; background: white; padding: 50px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }}
+                .loading {{ color: #0C3C32; font-size: 18px; margin-bottom: 20px; }}
+                .spinner {{ border: 4px solid #f3f3f3; border-top: 4px solid #F39200; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }}
+                @keyframes spin {{ 0% {{ transform: rotate(0deg); }} 100% {{ transform: rotate(360deg); }} }}
+                .manual-link {{ color: #F39200; text-decoration: none; font-weight: bold; }}
+                .manual-link:hover {{ color: #e08600; }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h1 class="loading">🔐 Conectando con Google...</h1>
+                <div class="spinner"></div>
+                <p>Serás redirigido automáticamente a Google para autenticarte.</p>
+                <p>Si no te redirige automáticamente, <a href="{authorization_url}" class="manual-link">haz clic aquí</a></p>
+            </div>
+            
+            <script>
+                // Fallback JavaScript redirect
+                setTimeout(function() {{
+                    window.location.href = "{authorization_url}";
+                }}, 2000);
+            </script>
+        </body>
+        </html>
+        """)
         
     except Exception as e:
         logger.error(f"Error initiating OAuth: {str(e)}")
-        raise HTTPException(status_code=500, detail="Error initiating authentication")
+        return HTMLResponse(content=f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Error - Pymetra OAuth</title>
+            <meta charset="utf-8">
+            <style>
+                body {{ font-family: Arial, sans-serif; text-align: center; margin: 50px; }}
+                .error {{ color: red; }}
+            </style>
+        </head>
+        <body>
+            <h1 class="error">❌ Error de Configuración OAuth</h1>
+            <p>Error: {str(e)}</p>
+            <p><a href="/admin">Volver al Panel Admin</a></p>
+        </body>
+        </html>
+        """, status_code=500)
 
 @router.get("/google/callback")
 async def google_callback(
