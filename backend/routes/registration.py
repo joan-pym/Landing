@@ -1,11 +1,20 @@
 from fastapi import APIRouter, File, UploadFile, Form, HTTPException, BackgroundTasks
 from pydantic import EmailStr
+import sys
+from pathlib import Path
+from dotenv import load_dotenv
+import asyncio
+import logging
+
+# Add the backend directory to the path and load env
+sys.path.append(str(Path(__file__).parent.parent))
+ROOT_DIR = Path(__file__).parent.parent
+load_dotenv(ROOT_DIR / '.env')
+
 from models import AgentRegistration, AgentRegistrationResponse
 from services.database_service import DatabaseService
 from services.file_service import FileService
 from services.email_service import EmailService
-import asyncio
-import logging
 
 logger = logging.getLogger(__name__)
 
