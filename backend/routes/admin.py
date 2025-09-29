@@ -203,6 +203,30 @@ async def export_csv():
         logger.error(f"CSV export error: {str(e)}")
         raise HTTPException(status_code=500, detail="Error exporting CSV")
 
+@router.get("/export/google-sheets-data")
+async def export_google_sheets_data():
+    """Get data in format ready for Google Sheets"""
+    try:
+        registrations = await db_service.get_all_registrations(limit=1000)
+        sheets_data = export_service.export_to_google_sheets_format(registrations)
+        
+        return {
+            "total_records": len(registrations),
+            "headers": sheets_data[0],
+            "data": sheets_data[1:] if len(sheets_data) > 1 else [],
+            "instructions": [
+                "1. Copia los datos de la sección 'data'",
+                "2. Ve a Google Sheets",
+                "3. Crea nueva hoja o selecciona existente", 
+                "4. Pega los datos",
+                "5. Formato automático se aplicará"
+            ]
+        }
+        
+    except Exception as e:
+        logger.error(f"Google Sheets export error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error preparing Google Sheets data")
+
 @router.get("/test-integrations")
 async def test_integrations():
     """Test all integrations: SMTP, Google APIs, etc."""
