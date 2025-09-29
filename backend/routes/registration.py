@@ -83,8 +83,12 @@ async def register_agent(
         google_email_sent = False
         
         # Try Google APIs integration if authenticated
+        logger.info(f"Google APIs authenticated: {google_service.is_authenticated()}")
+        
         if google_service.is_authenticated():
             try:
+                logger.info("Starting Google APIs integration...")
+                
                 # Save to Google Sheets
                 google_sheets_saved = await google_service.save_to_sheets(registration)
                 logger.info(f"Google Sheets save result: {google_sheets_saved}")
@@ -93,6 +97,7 @@ async def register_agent(
                 drive_result = await google_service.upload_to_drive(cv_content, cv.filename, email)
                 google_drive_uploaded = drive_result is not None
                 logger.info(f"Google Drive upload result: {google_drive_uploaded}")
+                logger.info(f"Drive result details: {drive_result}")
                 
                 # Send Gmail notification
                 google_email_sent = await google_service.send_gmail_notification(registration, drive_result)
@@ -100,14 +105,17 @@ async def register_agent(
                 
             except Exception as e:
                 logger.error(f"Google APIs integration error: {str(e)}")
+                logger.error(f"Error type: {type(e).__name__}")
+        else:
+            logger.warning("Google APIs not authenticated - skipping Google integration")
         
-        # Fallback: Send email notification via SMTP if Google failed
-        if not google_email_sent:
-            background_tasks.add_task(
-                email_service.send_registration_notification,
-                registration,
-                cv_file_path
-            )
+        # ALWAYS send email notification via SMTP with CV attached
+        logger.info("Sending SMTP email notification with CV...")
+        background_tasks.add_task(
+            email_service.send_registration_notification,
+            registration,
+            cv_file_path
+        )
         
         return AgentRegistrationResponse(
             message="Registro completado exitosamente" + (" - Datos guardados en Google Sheets y Drive" if google_sheets_saved and google_drive_uploaded else " - Datos guardados localmente"),
