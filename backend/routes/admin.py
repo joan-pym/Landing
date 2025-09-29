@@ -203,26 +203,52 @@ async def export_csv():
         logger.error(f"CSV export error: {str(e)}")
         raise HTTPException(status_code=500, detail="Error exporting CSV")
 
-@router.get("/export/google-sheets-data")
-async def export_google_sheets_data():
-    """Get data in format ready for Google Sheets"""
+@router.get("/test-integrations")
+async def test_integrations():
+    """Test all integrations: SMTP, Google APIs, etc."""
     try:
-        registrations = await db_service.get_all_registrations(limit=1000)
-        sheets_data = export_service.export_to_google_sheets_format(registrations)
-        
-        return {
-            "total_records": len(registrations),
-            "headers": sheets_data[0],
-            "data": sheets_data[1:] if len(sheets_data) > 1 else [],
-            "instructions": [
-                "1. Copia los datos de la sección 'data'",
-                "2. Ve a Google Sheets",
-                "3. Crea nueva hoja o selecciona existente", 
-                "4. Pega los datos",
-                "5. Formato automático se aplicará"
-            ]
+        # Test results
+        results = {
+            "timestamp": datetime.now().isoformat(),
+            "tests": {}
         }
         
+        # Test 1: Check environment variables
+        from services.email_service import EmailService
+        from services.google_apis_service import GoogleAPIsService
+        
+        email_service = EmailService()
+        google_service = GoogleAPIsService()
+        
+        results["tests"]["env_vars"] = {
+            "gmail_sender": bool(email_service.sender_email),
+            "gmail_password": bool(email_service.sender_password),
+            "google_client_id": bool(os.getenv('GOOGLE_CLIENT_ID')),
+            "google_client_secret": bool(os.getenv('GOOGLE_CLIENT_SECRET')),
+            "spreadsheet_id": bool(os.getenv('GOOGLE_SPREADSHEET_ID')),
+            "drive_folder_id": bool(os.getenv('GOOGLE_DRIVE_FOLDER_ID'))
+        }
+        
+        # Test 2: Google APIs authentication
+        results["tests"]["google_auth"] = {
+            "authenticated": google_service.is_authenticated()
+        }
+        
+        # Test 3: Database connection
+        try:
+            count = await db_service.get_registrations_count()
+            results["tests"]["database"] = {
+                "connected": True,
+                "registrations_count": count
+            }
+        except Exception as db_error:
+            results["tests"]["database"] = {
+                "connected": False,
+                "error": str(db_error)
+            }
+        
+        return results
+        
     except Exception as e:
-        logger.error(f"Google Sheets export error: {str(e)}")
-        raise HTTPException(status_code=500, detail="Error preparing Google Sheets data")
+        logger.error(f"Test integrations error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
