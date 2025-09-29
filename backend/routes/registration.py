@@ -118,9 +118,11 @@ async def register_agent(
         )
         
         return AgentRegistrationResponse(
-            message="Registro completado exitosamente" + (" - Datos guardados en Google Sheets y Drive" if google_sheets_saved and google_drive_uploaded else " - Datos guardados localmente"),
+            message="Registro completado exitosamente" + 
+                   (" - Datos guardados en Google Sheets y Drive" if google_sheets_saved and google_drive_uploaded else 
+                    " - Revisa tu email para los datos y CV"),
             registration_id=registration_id,
-            email_sent=google_email_sent or True,  # Either Google or SMTP
+            email_sent=True,  # Always send SMTP email now
             cv_saved=google_drive_uploaded or (cv_file_path is not None)
         )
         
