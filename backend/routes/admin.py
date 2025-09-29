@@ -6,6 +6,8 @@ import sys
 from pathlib import Path
 from dotenv import load_dotenv
 import logging
+import os
+from datetime import datetime
 
 # Add the backend directory to the path and load env
 sys.path.append(str(Path(__file__).parent.parent))
