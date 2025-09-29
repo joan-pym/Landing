@@ -107,15 +107,18 @@ user_problem_statement: "Proyecto PYMETRA: Landing page bilingüe (ES/EN) para m
 backend:
   - task: "Google Sheets Integration"
     implemented: true
-    working: false
+    working: true
     file: "/app/backend/services/google_apis_service.py"
     stuck_count: 1
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: false
         agent: "main"
         comment: "Google Sheets no se actualiza en producción. Autenticación OK pero API calls fallan"
+      - working: true
+        agent: "testing"
+        comment: "TESTING CONFIRMADO: Google Sheets funcionando correctamente. Registro test exitoso con ID 0b865536-1d8f-40ad-a8fa-8063e0f701a3. OAuth autenticado, datos guardándose en producción."
 
   - task: "Google Drive CV Upload"
     implemented: true
