@@ -258,6 +258,9 @@ frontend:
       - working: true
         agent: "main"
         comment: "Páginas legales bilingües completadas"
+      - working: true
+        agent: "testing"
+        comment: "TESTING CONFIRMADO: Todas las páginas legales funcionando correctamente. Rutas probadas: /es/aviso-legal, /es/privacidad, /es/cookies, /en/legal-notice, /en/privacy, /en/cookies. Todas cargan sin errores 404."
 
   - task: "Pymetra Brand Design"
     implemented: true
