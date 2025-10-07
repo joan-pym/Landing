@@ -285,54 +285,46 @@ async def admin_dashboard():
                     
                     progressDiv.querySelector('p').textContent = `Encontrados ${lines.length - 1} registros. Iniciando migración...`;
                     
-                    // Process each registration
-                    let migrated = 0;
-                    let already_migrated = 0;
-                    let errors = 0;
+                    // Process migration using real endpoint
+                    const migrationResponse = await fetch('/api/admin/execute-migration', {
+                        method: 'POST'
+                    });
                     
-                    for (let i = 1; i < lines.length; i++) {
-                        const parts = lines[i].split(',');
-                        const registrationId = parts[0];
-                        const userName = parts[1];
-                        
-                        if (!registrationId || !userName) continue;
-                        
-                        // Update progress
-                        const progress = (i / (lines.length - 1)) * 100;
-                        document.getElementById('progress-bar').style.width = progress + '%';
-                        progressDiv.querySelector('p').textContent = `Procesando: ${userName} (${i}/${lines.length - 1})`;
-                        
-                        // Try to get CV info and simulate migration
-                        try {
-                            // In a real scenario, this would call the migration API
-                            // For now, we'll simulate the process
-                            await new Promise(resolve => setTimeout(resolve, 500)); // Simulate processing
-                            migrated++;
-                        } catch (e) {
-                            errors++;
-                        }
+                    if (!migrationResponse.ok) {
+                        throw new Error('Migration API failed');
                     }
                     
-                    // Show final results
-                    progressDiv.innerHTML = `
-                        <h3>✅ Migración Completada</h3>
-                        <div style="text-align: left; margin: 20px 0;">
-                            <p>📊 <strong>Resultados:</strong></p>
-                            <p>✅ CVs procesados: ${migrated}</p>
-                            <p>⚠️ Ya migrados: ${already_migrated}</p>
-                            <p>❌ Errores: ${errors}</p>
-                        </div>
-                        <button onclick="document.getElementById('migration-progress').remove(); location.reload();" style="background: #0C3C32; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">Cerrar y Recargar</button>
-                    `;
+                    const migrationResult = await migrationResponse.json();
                     
-                    // Show success message
-                    setTimeout(() => {
-                        alert('🎉 ¡Migración completada!\\n\\n' +
-                              '✅ CVs procesados: ' + migrated + '\\n' +
-                              '⚠️ Ya migrados: ' + already_migrated + '\\n' +
-                              '❌ Errores: ' + errors + '\\n\\n' +
-                              '👉 Verifica tu Google Drive para confirmar que los CVs están allí');
-                    }, 2000);
+                    if (migrationResult.success) {
+                        const results = migrationResult.results;
+                        
+                        // Show final results
+                        progressDiv.innerHTML = `
+                            <h3>✅ Migración Completada</h3>
+                            <div style="text-align: left; margin: 20px 0;">
+                                <p>📊 <strong>Resultados:</strong></p>
+                                <p>✅ CVs migrados a Drive: ${results.migrated}</p>
+                                <p>✅ Ya estaban en Drive: ${results.already_in_drive}</p>
+                                <p>⚠️ Sin archivo local: ${results.no_local_file}</p>
+                                <p>❌ Errores: ${results.errors}</p>
+                                <p>📊 Total procesados: ${results.total_processed}</p>
+                            </div>
+                            <button onclick="document.getElementById('migration-progress').remove(); location.reload();" style="background: #0C3C32; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">Cerrar y Recargar</button>
+                        `;
+                        
+                        // Show success message
+                        setTimeout(() => {
+                            alert('🎉 ¡Migración REAL completada!\\n\\n' +
+                                  '✅ CVs migrados: ' + results.migrated + '\\n' +
+                                  '✅ Ya en Drive: ' + results.already_in_drive + '\\n' +
+                                  '⚠️ Sin archivo: ' + results.no_local_file + '\\n' +
+                                  '❌ Errores: ' + results.errors + '\\n\\n' +
+                                  '👉 ¡Verifica tu Google Drive ahora!');
+                        }, 1000);
+                    } else {
+                        throw new Error(migrationResult.error || 'Migration failed');
+                    }
                     
                 } catch (error) {
                     document.getElementById('migration-progress')?.remove();
