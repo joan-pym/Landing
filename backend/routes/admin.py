@@ -128,7 +128,8 @@ async def admin_dashboard():
                     <h3 style="margin-top: 0; color: #0C3C32;">📊 Exportar y Gestionar Datos</h3>
                     <a href="/api/admin/export/csv" class="btn">📥 Descargar CSV Completo</a>
                     <a href="/api/admin/export/google-sheets-data" class="btn btn-orange">📋 Ver Datos para Google Sheets</a>
-                    <button onclick="migrateCvs()" class="btn btn-orange">☁️ Migrar CVs a Google Drive</button>
+                    <a href="/api/admin/list-cvs" class="btn btn-orange" target="_blank">📁 Ver Lista de CVs (Temporal)</a>
+                    <button onclick="migrateCvs()" class="btn btn-orange">☁️ Info CVs (Temporal)</button>
                     {"" if is_google_authenticated else '<a href="/api/auth/google/login" class="btn btn-orange">🔑 Autenticar Google APIs</a>'}
                     <a href="/api/auth/status" class="btn">🔍 Estado Autenticación</a>
                 </div>
