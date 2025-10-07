@@ -262,13 +262,16 @@ backend:
     implemented: true
     working: false
     file: "/app/backend/routes/admin.py"
-    stuck_count: 1
+    stuck_count: 2
     priority: "medium"
     needs_retesting: false
     status_history:
       - working: false
         agent: "testing"
         comment: "PROBLEMA IDENTIFICADO: Endpoint /api/admin/download-cv/{id} retorna 404 en producción. Código implementado correctamente pero no accesible externamente. Posible routing issue similar al de migrate-cvs."
+      - working: false
+        agent: "testing"
+        comment: "TESTING POST-FIXES PROXY/FORWARDED HEADERS: FALLO CONFIRMADO. Endpoint /api/admin/download-cv/{id} sigue retornando 404 en producción externa después de implementar --forwarded-allow-ips='*' y TrustedHostMiddleware. Proxy/ingress no routing este endpoint correctamente. Mismo patrón que migrate-cvs."
 
 frontend:
   - task: "Bilingual Landing Page"
