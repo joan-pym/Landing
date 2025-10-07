@@ -9,12 +9,16 @@ from pathlib import Path
 from routes.registration import router as registration_router
 from routes.admin import router as admin_router
 from routes.auth import router as auth_router
+from middleware.admin_auth import AdminAuthMiddleware
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
 # Create the main app
 app = FastAPI(title="Pymetra Registration API", version="1.0.0")
+
+# Add custom admin authentication middleware (before other middleware)
+app.add_middleware(AdminAuthMiddleware)
 
 # Trust proxy headers (for proper authentication behind proxy/ingress)
 app.add_middleware(TrustedHostMiddleware, allowed_hosts=["*"])
