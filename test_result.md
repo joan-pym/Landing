@@ -211,13 +211,16 @@ backend:
     implemented: true
     working: false
     file: "/app/backend/routes/admin.py"
-    stuck_count: 1
-    priority: "medium"
+    stuck_count: 2
+    priority: "high"
     needs_retesting: false
     status_history:
       - working: false
         agent: "testing"
         comment: "PROBLEMA IDENTIFICADO: Endpoint /api/admin/migrate-cvs retorna 404 en producción externa (https://pymetra.com) pero funciona localmente (localhost:8001). Ruta existe en código y router. Posible problema de routing en producción o proxy/ingress configuration."
+      - working: false
+        agent: "testing"
+        comment: "TESTING CRÍTICO COMPLETADO: Endpoint /api/admin/migrate-cvs sigue retornando 404 en producción externa después de restart del backend. Localmente retorna 401 (autenticación requerida), confirmando que el código está correcto. PROBLEMA CONFIRMADO: Routing issue en producción/proxy."
 
   - task: "Registration API with Debug Logging"
     implemented: true
