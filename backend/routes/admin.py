@@ -450,3 +450,87 @@ async def migrate_cvs_to_drive():
     except Exception as e:
         logger.error(f"Migration error: {str(e)}")
         raise HTTPException(status_code=500, detail="Error en migración")
+
+@router.get("/get-cv/{registration_id}")
+async def get_cv_info(registration_id: str):
+    """Get CV information (alternative to download-cv)"""
+    try:
+        # Get registration from database
+        registration = await db_service.get_registration(registration_id)
+        if not registration:
+            raise HTTPException(status_code=404, detail="Registro no encontrado")
+        
+        cv_info = {
+            "registration_id": registration_id,
+            "filename": registration.cv_filename,
+            "user_name": registration.full_name,
+            "user_email": registration.email,
+            "has_local_file": False,
+            "has_drive_file": False,
+            "local_path": None,
+            "drive_link": None
+        }
+        
+        # Check if local file exists
+        if hasattr(registration, 'cv_file_path') and registration.cv_file_path:
+            cv_path = Path(registration.cv_file_path)
+            if cv_path.exists():
+                cv_info["has_local_file"] = True
+                cv_info["local_path"] = str(cv_path)
+        
+        # Check if drive file exists
+        if hasattr(registration, 'cv_drive_link') and registration.cv_drive_link:
+            cv_info["has_drive_file"] = True
+            cv_info["drive_link"] = registration.cv_drive_link
+        
+        return cv_info
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Get CV info error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error obteniendo información CV")
+
+@router.get("/list-cvs")
+async def list_all_cvs():
+    """List all CVs with download information"""
+    try:
+        registrations = await db_service.get_all_registrations(limit=1000)
+        
+        cvs_info = []
+        for reg in registrations:
+            cv_info = {
+                "registration_id": reg.id,
+                "filename": reg.cv_filename,
+                "user_name": reg.full_name,
+                "user_email": reg.email,
+                "timestamp": reg.timestamp.strftime('%d/%m/%Y %H:%M'),
+                "has_local_file": False,
+                "has_drive_file": False,
+                "local_path": None,
+                "drive_link": None
+            }
+            
+            # Check local file
+            if hasattr(reg, 'cv_file_path') and reg.cv_file_path:
+                cv_path = Path(reg.cv_file_path)
+                if cv_path.exists():
+                    cv_info["has_local_file"] = True
+                    cv_info["local_path"] = str(cv_path)
+            
+            # Check drive file
+            if hasattr(reg, 'cv_drive_link') and reg.cv_drive_link:
+                cv_info["has_drive_file"] = True
+                cv_info["drive_link"] = reg.cv_drive_link
+            
+            if cv_info["filename"]:  # Only include if has CV
+                cvs_info.append(cv_info)
+        
+        return {
+            "total_cvs": len(cvs_info),
+            "cvs": cvs_info
+        }
+        
+    except Exception as e:
+        logger.error(f"List CVs error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error listando CVs")
