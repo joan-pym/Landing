@@ -1,7 +1,5 @@
-from fastapi import APIRouter, HTTPException, Response, Depends
+from fastapi import APIRouter, HTTPException, Response
 from fastapi.responses import HTMLResponse, FileResponse
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
-import secrets
 from services.database_service import DatabaseService
 from services.export_service import ExportService
 import sys
@@ -24,25 +22,7 @@ router = APIRouter(prefix="/api/admin", tags=["admin"])
 db_service = DatabaseService()
 export_service = ExportService()
 
-# Security
-security = HTTPBasic()
-
-def verify_admin_credentials(credentials: HTTPBasicCredentials = Depends(security)):
-    """Verify admin credentials"""
-    # Admin credentials from environment or default
-    correct_username = os.getenv('ADMIN_USERNAME', 'pymetra_admin')
-    correct_password = os.getenv('ADMIN_PASSWORD', 'Pymetra2024!Admin')
-    
-    is_correct_username = secrets.compare_digest(credentials.username, correct_username)
-    is_correct_password = secrets.compare_digest(credentials.password, correct_password)
-    
-    if not (is_correct_username and is_correct_password):
-        raise HTTPException(
-            status_code=401,
-            detail="Credenciales incorrectas",
-            headers={"WWW-Authenticate": "Basic"},
-        )
-    return credentials
+# Note: Authentication is now handled by AdminAuthMiddleware at application level
 
 @router.get("/", response_class=HTMLResponse)
 async def admin_dashboard(credentials: HTTPBasicCredentials = Depends(verify_admin_credentials)):
