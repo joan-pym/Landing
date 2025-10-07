@@ -152,7 +152,13 @@ async def admin_dashboard():
         """
         
         for reg in registrations:
-            cv_link = f'<a href="/api/admin/get-cv/{reg.id}" class="cv-link" target="_blank">📄 {reg.cv_filename}</a>' if reg.cv_filename else '<span style="color: #999;">Sin CV</span>'
+            # Create multiple download options
+            cv_options = []
+            if reg.cv_filename:
+                cv_options.append(f'<a href="/api/admin/export/csv?download_cv={reg.id}" class="cv-link" style="margin-right: 10px;">📥 Descargar</a>')
+                cv_options.append(f'<a href="javascript:void(0);" onclick="getCvInfo(\'{reg.id}\')" class="cv-link">📄 {reg.cv_filename}</a>')
+            
+            cv_link = ' '.join(cv_options) if cv_options else '<span style="color: #999;">Sin CV</span>'
             status_class = "status-active" if reg.status == "active" else "status-pending"
             
             html_content += f"""
