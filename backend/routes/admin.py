@@ -711,3 +711,94 @@ async def list_all_cvs():
     except Exception as e:
         logger.error(f"List CVs error: {str(e)}")
         raise HTTPException(status_code=500, detail="Error listando CVs")
+
+@router.post("/execute-migration")
+async def execute_migration():
+    """Execute actual CV migration to Google Drive"""
+    try:
+        from services.google_apis_service import GoogleAPIsService
+        from pathlib import Path
+        import asyncio
+        
+        google_service = GoogleAPIsService()
+        
+        # Check authentication
+        if not google_service.is_authenticated():
+            return {
+                "success": False,
+                "error": "Google APIs not authenticated",
+                "solution": "Visit /api/auth/google/login to authenticate"
+            }
+        
+        # Get all registrations
+        registrations = await db_service.get_all_registrations(limit=1000)
+        
+        migrated_count = 0
+        already_in_drive = 0
+        no_local_file = 0
+        errors = 0
+        error_details = []
+        
+        for registration in registrations:
+            try:
+                # Skip if already migrated
+                if hasattr(registration, 'cv_drive_id') and registration.cv_drive_id:
+                    already_in_drive += 1
+                    continue
+                
+                # Check if has local file
+                if not (hasattr(registration, 'cv_file_path') and registration.cv_file_path):
+                    no_local_file += 1
+                    continue
+                    
+                cv_path = Path(registration.cv_file_path)
+                if not cv_path.exists():
+                    no_local_file += 1
+                    continue
+                
+                # Read and upload file
+                with open(cv_path, 'rb') as f:
+                    cv_content = f.read()
+                
+                drive_result = await google_service.upload_to_drive(
+                    cv_content,
+                    registration.cv_filename or cv_path.name,
+                    registration.email
+                )
+                
+                if drive_result:
+                    # Update database
+                    await db_service.update_registration_drive_info(
+                        registration.id,
+                        drive_result['file_id'],
+                        drive_result['web_link']
+                    )
+                    migrated_count += 1
+                else:
+                    errors += 1
+                    error_details.append(f"Failed to upload: {registration.full_name}")
+                    
+            except Exception as e:
+                errors += 1
+                error_details.append(f"Error with {registration.full_name}: {str(e)}")
+        
+        return {
+            "success": True,
+            "results": {
+                "migrated": migrated_count,
+                "already_in_drive": already_in_drive,
+                "no_local_file": no_local_file,
+                "errors": errors,
+                "total_processed": len(registrations),
+                "error_details": error_details[:5]  # First 5 errors
+            },
+            "message": f"Migration completed: {migrated_count} CVs migrated to Google Drive"
+        }
+        
+    except Exception as e:
+        logger.error(f"Execute migration error: {str(e)}")
+        return {
+            "success": False,
+            "error": str(e),
+            "solution": "Check server logs and try again"
+        }
