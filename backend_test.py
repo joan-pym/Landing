@@ -115,26 +115,54 @@ class PymetraBackendTester:
             logger.error(f"Admin panel auth test failed: {str(e)}")
             return {'success': False, 'error': str(e)}
     
-    def test_integrations_endpoint(self):
-        """Test 2: Test Integrations Endpoint"""
-        logger.info("=== TEST 2: Test Integrations ===")
+    def test_admin_migrate_cvs_endpoint(self):
+        """Test 3: Admin CV Migration Endpoint - WITH credentials (should work, not 404)"""
+        logger.info("=== TEST 3: Admin CV Migration Endpoint ===")
         try:
-            response = self.session.get(f"{self.base_url}/api/admin/test-integrations", timeout=30)
+            headers = self.auth_headers.copy()
+            headers['Content-Type'] = 'application/json'
+            
+            response = self.session.post(f"{self.base_url}/api/admin/migrate-cvs", headers=headers, timeout=120)
             logger.info(f"Status Code: {response.status_code}")
+            logger.info(f"Response Headers: {dict(response.headers)}")
             logger.info(f"Response: {response.text}")
             
             if response.status_code == 200:
                 data = response.json()
-                logger.info("Integration Test Results:")
-                for test_name, result in data.get('tests', {}).items():
-                    logger.info(f"  {test_name}: {result}")
-                return {'success': True, 'data': data}
+                logger.info("✅ ENDPOINT WORKING: CV Migration endpoint accessible")
+                logger.info(f"Migration Results: {data}")
+                return {
+                    'success': True,
+                    'endpoint_accessible': True,
+                    'data': data
+                }
+            elif response.status_code == 404:
+                logger.error("❌ ROUTING ISSUE: CV Migration endpoint returns 404 (proxy/ingress problem)")
+                return {
+                    'success': False,
+                    'endpoint_accessible': False,
+                    'status_code': response.status_code,
+                    'error': "Endpoint returns 404 - routing issue"
+                }
+            elif response.status_code == 401:
+                logger.error("❌ AUTHENTICATION ISSUE: CV Migration endpoint requires auth but credentials not working")
+                return {
+                    'success': False,
+                    'endpoint_accessible': False,
+                    'status_code': response.status_code,
+                    'error': "Authentication failed with provided credentials"
+                }
             else:
-                logger.error(f"Integrations test failed: {response.status_code}")
-                return {'success': False, 'error': f"HTTP {response.status_code}"}
+                logger.error(f"❌ UNEXPECTED STATUS: CV Migration endpoint returned {response.status_code}")
+                return {
+                    'success': False,
+                    'endpoint_accessible': False,
+                    'status_code': response.status_code,
+                    'error': f"Unexpected status code: {response.status_code}"
+                }
                 
         except Exception as e:
-            logger.error(f"Integrations test failed: {str(e)}")
+            logger.error(f"CV Migration endpoint test failed: {str(e)}")
             return {'success': False, 'error': str(e)}
     
     def test_database_count(self):
