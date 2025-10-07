@@ -189,220 +189,68 @@ async def admin_dashboard():
             </div>
             
             <script>
-            // Temporary client-side authentication layer
-            function checkAdminAuth() {
-                // Strong authentication check
-                const currentAuth = sessionStorage.getItem('pymetra_admin_auth');
-                const currentTime = new Date().getTime();
-                
-                // Check if auth exists and is less than 1 hour old
-                if (currentAuth) {
-                    const authData = JSON.parse(currentAuth);
-                    if (currentTime - authData.timestamp < 3600000) { // 1 hour
-                        return true;
-                    }
-                }
-                
-                // Clear old auth
-                sessionStorage.removeItem('pymetra_admin_auth');
-                
-                // Show login form
-                const username = prompt('🔐 ACCESO RESTRINGIDO - Usuario Admin:', '');
-                if (!username) {
-                    window.location.href = 'https://pymetra.com';
-                    return false;
-                }
-                
-                const password = prompt('🔐 Contraseña Admin:', '');
-                if (!password) {
-                    window.location.href = 'https://pymetra.com';
-                    return false;
-                }
-                
-                // Verify credentials
-                if (username !== 'pymetra_admin' || password !== 'PymetraAdmin2024!Secure') {
-                    alert('❌ Credenciales incorrectas. Acceso denegado.');
-                    window.location.href = 'https://pymetra.com';
-                    return false;
-                }
-                
-                // Save auth with timestamp
-                const authData = {
-                    timestamp: currentTime,
-                    user: username
-                };
-                sessionStorage.setItem('pymetra_admin_auth', JSON.stringify(authData));
-                return true;
-            }
-            
-            // Force authentication check on page load
-            if (!checkAdminAuth()) {
-                document.body.innerHTML = '<div style="text-align: center; padding: 50px;"><h1>🚫 Acceso Denegado</h1><p>Redirigiendo...</p></div>';
-                setTimeout(() => window.location.href = 'https://pymetra.com', 2000);
-            } else {
-                // Add logout button
-                const logoutBtn = document.createElement('button');
-                logoutBtn.innerHTML = '🚪 Cerrar Sesión';
-                logoutBtn.style.cssText = 'position: fixed; top: 10px; right: 10px; background: #dc3545; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; z-index: 9999;';
-                logoutBtn.onclick = function() {
-                    sessionStorage.removeItem('pymetra_admin_auth');
-                    window.location.reload();
-                };
-                document.body.appendChild(logoutBtn);
-            }
-            
-            async function migrateCvs() {
-                if (!checkAdminAuth()) return;
-                
-                if (!confirm('🚀 ¿MIGRAR TODOS LOS CVs A GOOGLE DRIVE?\\n\\n' + 
-                           'Esta operación:' +
-                           '\\n• Subirá todos los CVs locales a tu Google Drive' +
-                           '\\n• Puede tomar varios minutos' +
-                           '\\n• Es segura (no borra archivos locales)' +
-                           '\\n\\n¿Continuar?')) {
+            <script>
+            // Simple admin functions without hardcoded credentials
+            function migrarCvs() {
+                if (!confirm('🚀 ¿MIGRAR TODOS LOS CVs A GOOGLE DRIVE?\\n\\nEsta operación puede tomar varios minutos. ¿Continuar?')) {
                     return;
                 }
                 
                 const button = event.target;
+                const originalText = button.textContent;
                 button.disabled = true;
-                button.textContent = '⏳ Migrando CVs...';
+                button.textContent = '⏳ Migrando...';
                 
-                try {
-                    // Show progress
-                    const progressDiv = document.createElement('div');
-                    progressDiv.id = 'migration-progress';
-                    progressDiv.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border: 2px solid #0C3C32; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); z-index: 10000; min-width: 400px; text-align: center;';
-                    progressDiv.innerHTML = '<h3>🔄 Migración en Progreso</h3><p>Preparando migración...</p><div style="background: #f0f0f0; height: 20px; border-radius: 10px; margin: 20px 0;"><div id="progress-bar" style="background: #0C3C32; height: 100%; border-radius: 10px; width: 0%; transition: width 0.3s;"></div></div>';
-                    document.body.appendChild(progressDiv);
-                    
-                    // Get registrations first
-                    const csvResponse = await fetch('/api/admin/export/csv');
-                    if (!csvResponse.ok) {
-                        throw new Error('No se pudo acceder a los datos');
-                    }
-                    
-                    const csvText = await csvResponse.text();
-                    const lines = csvText.split('\\n').filter(line => line.trim());
-                    
-                    progressDiv.querySelector('p').textContent = `Encontrados ${lines.length - 1} registros. Iniciando migración...`;
-                    
-                    // Process migration using real endpoint
-                    const migrationResponse = await fetch('/api/admin/execute-migration', {
-                        method: 'POST'
-                    });
-                    
-                    if (!migrationResponse.ok) {
-                        throw new Error('Migration API failed');
-                    }
-                    
-                    const migrationResult = await migrationResponse.json();
-                    
-                    if (migrationResult.success) {
-                        const results = migrationResult.results;
-                        
-                        // Show final results
-                        progressDiv.innerHTML = `
-                            <h3>✅ Migración Completada</h3>
-                            <div style="text-align: left; margin: 20px 0;">
-                                <p>📊 <strong>Resultados:</strong></p>
-                                <p>✅ CVs migrados a Drive: ${results.migrated}</p>
-                                <p>✅ Ya estaban en Drive: ${results.already_in_drive}</p>
-                                <p>⚠️ Sin archivo local: ${results.no_local_file}</p>
-                                <p>❌ Errores: ${results.errors}</p>
-                                <p>📊 Total procesados: ${results.total_processed}</p>
-                            </div>
-                            <button onclick="document.getElementById('migration-progress').remove(); location.reload();" style="background: #0C3C32; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">Cerrar y Recargar</button>
-                        `;
-                        
-                        // Show success message
-                        setTimeout(() => {
-                            alert('🎉 ¡Migración REAL completada!\\n\\n' +
-                                  '✅ CVs migrados: ' + results.migrated + '\\n' +
-                                  '✅ Ya en Drive: ' + results.already_in_drive + '\\n' +
-                                  '⚠️ Sin archivo: ' + results.no_local_file + '\\n' +
-                                  '❌ Errores: ' + results.errors + '\\n\\n' +
-                                  '👉 ¡Verifica tu Google Drive ahora!');
-                        }, 1000);
+                fetch('/api/admin/execute-migration', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const results = data.results || {};
+                        alert(`✅ Migración completada:\\n\\n` +
+                              `• CVs migrados: ${results.migrated || 0}\\n` +
+                              `• Ya en Drive: ${results.already_in_drive || 0}\\n` +
+                              `• Sin archivo: ${results.no_local_file || 0}\\n` +
+                              `• Errores: ${results.errors || 0}\\n\\n` +
+                              `¡Verifica tu Google Drive!`);
+                        location.reload();
                     } else {
-                        throw new Error(migrationResult.error || 'Migration failed');
+                        alert(`❌ Error: ${data.error || 'Error desconocido'}\\n\\n${data.solution || ''}`);
                     }
-                    
-                } catch (error) {
-                    document.getElementById('migration-progress')?.remove();
-                    alert(`❌ Error en migración: ${error.message}\\n\\n` +
-                          '💡 Soluciones:\\n' +
-                          '1. Verifica que Google APIs esté autenticado\\n' +
-                          '2. Intenta recargar la página y probar de nuevo\\n' +
-                          '3. Algunos CVs pueden haberse migrado exitosamente');
-                } finally {
+                })
+                .catch(error => {
+                    alert(`❌ Error de conexión: ${error.message}`);
+                })
+                .finally(() => {
                     button.disabled = false;
-                    button.textContent = '☁️ Migrar CVs a Drive';
-                }
+                    button.textContent = originalText;
+                });
             }
             
-            async function getCvInfo(registrationId) {
-                if (!checkAdminAuth()) return;
+            function verCvInfo(registrationId, filename) {
+                if (!registrationId) return;
                 
-                try {
-                    // Try multiple approaches to get CV info
-                    let cvInfo = null;
-                    
-                    // Approach 1: Try direct endpoint (might not work due to proxy)
-                    try {
-                        const response = await fetch(`/api/admin/get-cv/${registrationId}`);
-                        if (response.ok) {
-                            cvInfo = await response.json();
-                        }
-                    } catch (e) {
-                        console.log('Direct endpoint failed:', e);
-                    }
-                    
-                    // Approach 2: Use working CSV endpoint to get data
-                    if (!cvInfo) {
-                        try {
-                            const csvResponse = await fetch('/api/admin/export/csv');
-                            if (csvResponse.ok) {
-                                const csvText = await csvResponse.text();
-                                const lines = csvText.split('\\n');
-                                
-                                // Find the registration in CSV
-                                for (let line of lines) {
-                                    if (line.includes(registrationId)) {
-                                        const parts = line.split(',');
-                                        cvInfo = {
-                                            registration_id: registrationId,
-                                            user_name: parts[1] || 'No disponible',
-                                            user_email: parts[2] || 'No disponible',
-                                            filename: parts[6] || 'No disponible',
-                                            timestamp: parts[4] || 'No disponible'
-                                        };
-                                        break;
-                                    }
-                                }
-                            }
-                        } catch (e) {
-                            console.log('CSV approach failed:', e);
-                        }
-                    }
-                    
-                    // Show info
-                    if (cvInfo) {
-                        const message = `📄 INFORMACIÓN DEL CV\\n\\n` +
-                                      `👤 Usuario: ${cvInfo.user_name}\\n` +
-                                      `📧 Email: ${cvInfo.user_email}\\n` +
-                                      `📄 Archivo: ${cvInfo.filename}\\n` +
-                                      `📅 Fecha: ${cvInfo.timestamp}\\n\\n` +
-                                      `💾 Estado: Guardado en base de datos\\n` +
-                                      `☁️ Para migrar a Google Drive, use el botón de migración`;
-                        
-                        alert(message);
+                // Try to get CV info
+                fetch(`/api/admin/get-cv/${registrationId}`)
+                .then(response => response.ok ? response.json() : null)
+                .then(data => {
+                    if (data) {
+                        alert(`📄 CV: ${filename || data.filename}\\n\\n` +
+                              `👤 Usuario: ${data.user_name}\\n` +
+                              `📧 Email: ${data.user_email}\\n` +
+                              `💾 Guardado en sistema`);
                     } else {
-                        alert('❌ No se pudo obtener información del CV');
+                        alert(`📄 CV: ${filename}\\n\\n` +
+                              `ℹ️ Información no disponible\\n` +
+                              `💾 Archivo guardado en sistema`);
                     }
-                    
-                } catch (error) {
-                    alert(`❌ Error obteniendo información: ${error.message}`);
-                }
+                })
+                .catch(() => {
+                    alert(`📄 CV: ${filename}\\n\\n` +
+                          `💾 Archivo disponible en sistema`);
+                });
             }
             </script>
         </body>
