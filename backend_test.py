@@ -591,13 +591,13 @@ startxref
         return results
 
 def main():
-    """Main test execution - Complete External Testing"""
+    """Main test execution - Proxy/Forwarded Headers Testing"""
     tester = PymetraBackendTester()
-    results = tester.run_complete_external_tests()
+    results = tester.run_proxy_forwarded_headers_tests()
     
     # Print final summary
     print("\n" + "="*80)
-    print("PYMETRA COMPLETE EXTERNAL TEST RESULTS")
+    print("PYMETRA PROXY/FORWARDED HEADERS FIX TEST RESULTS")
     print("="*80)
     
     total_tests = len(results)
@@ -616,54 +616,52 @@ def main():
             print(f"  Error: {result.get('error', 'Unknown error')}")
         
         # Special handling for key results
-        if test_name == 'oauth_status' and result.get('success'):
-            auth_data = result.get('data', {})
-            print(f"  Authenticated: {auth_data.get('authenticated', False)}")
+        if test_name == 'admin_security_no_auth':
+            if result.get('security_working'):
+                print(f"  ✅ Security: Correctly requires authentication (401)")
+            else:
+                print(f"  ❌ Security: BREACH - Accessible without auth ({result.get('status_code')})")
         
-        if test_name == 'admin_panel_updated' and result.get('success'):
-            print(f"  Has CV Download: {result.get('has_download_cv', False)}")
-            print(f"  Has CV Migration: {result.get('has_migrate_cvs', False)}")
-            print(f"  Has Google Drive: {result.get('has_google_drive', False)}")
+        if test_name == 'admin_security_with_auth':
+            if result.get('authenticated_access'):
+                print(f"  ✅ Authentication: Working with credentials")
+            else:
+                print(f"  ❌ Authentication: Failed with credentials ({result.get('status_code')})")
         
-        if test_name == 'cv_migration' and result.get('success'):
-            print(f"  Migrated: {result.get('migrated', 0)}")
-            print(f"  Already in Drive: {result.get('already_in_drive', 0)}")
-            print(f"  Failed: {result.get('failed', 0)}")
-            print(f"  Total: {result.get('total', 0)}")
+        if test_name == 'admin_migrate_cvs':
+            if result.get('endpoint_accessible'):
+                print(f"  ✅ Endpoint: Accessible (proxy/forwarded headers working)")
+            else:
+                print(f"  ❌ Endpoint: Not accessible ({result.get('status_code')}) - routing issue")
         
-        if test_name == 'external_registration' and result.get('success'):
-            reg_data = result.get('data', {})
-            print(f"  Registration ID: {reg_data.get('registration_id', 'N/A')}")
-            print(f"  Email Sent: {result.get('email_sent', False)}")
-            print(f"  CV Saved: {result.get('cv_saved', False)}")
-            print(f"  Google APIs Working: {result.get('google_apis_working', False)}")
-            print(f"  Joan Email Expected: {result.get('joan_email_expected', False)}")
-            print(f"  Google Sheets Expected: {result.get('google_sheets_expected', False)}")
-            print(f"  Google Drive Expected: {result.get('google_drive_expected', False)}")
-        
-        if 'database_count' in test_name and result.get('success'):
-            count = result.get('count', 0)
-            print(f"  Total Registrations: {count}")
+        if test_name == 'admin_download_cv':
+            if result.get('endpoint_accessible'):
+                print(f"  ✅ Endpoint: Accessible (proxy/forwarded headers working)")
+            else:
+                print(f"  ❌ Endpoint: Not accessible ({result.get('status_code')}) - routing issue")
     
     print("="*80)
     
     # Final determination
-    oauth_authenticated = results.get('oauth_status', {}).get('authenticated', False)
-    admin_features = results.get('admin_panel_updated', {}).get('success', False)
-    migration_working = results.get('cv_migration', {}).get('success', False)
-    registration_success = results.get('external_registration', {}).get('success', False)
-    google_apis_working = results.get('external_registration', {}).get('google_apis_working', False)
+    security_no_auth = results.get('admin_security_no_auth', {}).get('security_working', False)
+    security_with_auth = results.get('admin_security_with_auth', {}).get('authenticated_access', False)
+    migrate_cvs_working = results.get('admin_migrate_cvs', {}).get('endpoint_accessible', False)
+    download_cv_working = results.get('admin_download_cv', {}).get('endpoint_accessible', False)
     
-    print("\n🔍 FINAL DETERMINATION:")
-    if oauth_authenticated and admin_features and migration_working and registration_success and google_apis_working:
-        print("✅ COMPLETE SYSTEM WORKING PERFECTLY")
-        print("✅ Joan should receive email at joan@pymetra.com")
-        print("✅ Data should appear in Google Sheets: 1aSMXxycQLw0aSwFE87Pg_cRS8nlbc51-nl95G7WaujE")
-        print("✅ CV should appear in Google Drive: 186gcyPs1V2iUqB9CW5nRDB1H0G0I9a1v")
-    elif oauth_authenticated and registration_success:
-        print("⚠️  SYSTEM MOSTLY WORKING - SOME FEATURES MAY NEED VERIFICATION")
+    print("\n🔍 PROXY/FORWARDED HEADERS FIX DETERMINATION:")
+    if security_no_auth and security_with_auth and migrate_cvs_working and download_cv_working:
+        print("✅ PROXY/FORWARDED HEADERS FIXES: COMPLETELY SUCCESSFUL")
+        print("✅ HTTPBasic authentication working behind proxy")
+        print("✅ All admin endpoints accessible with credentials")
+        print("✅ Security fully implemented")
+    elif security_no_auth and security_with_auth:
+        print("⚠️  PROXY/FORWARDED HEADERS FIXES: PARTIALLY SUCCESSFUL")
+        print("✅ Authentication working behind proxy")
+        print("❌ Some admin endpoints still have routing issues")
     else:
-        print("❌ SYSTEM HAS CRITICAL ISSUES")
+        print("❌ PROXY/FORWARDED HEADERS FIXES: FAILED")
+        print("❌ Authentication not working properly behind proxy")
+        print("❌ Critical security and routing issues remain")
     
     return results
 
