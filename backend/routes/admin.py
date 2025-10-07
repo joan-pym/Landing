@@ -148,7 +148,7 @@ async def admin_dashboard():
         """
         
         for reg in registrations:
-            cv_link = f'<a href="/admin/download-cv/{reg.id}" class="cv-link">📄 {reg.cv_filename}</a>' if reg.cv_filename else '<span style="color: #999;">Sin CV</span>'
+            cv_link = f'<a href="/api/admin/download-cv/{reg.id}" class="cv-link">📄 {reg.cv_filename}</a>' if reg.cv_filename else '<span style="color: #999;">Sin CV</span>'
             status_class = "status-active" if reg.status == "active" else "status-pending"
             
             html_content += f"""
