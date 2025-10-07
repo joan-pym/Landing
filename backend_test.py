@@ -648,19 +648,19 @@ def main():
     migrate_cvs_working = results.get('admin_migrate_cvs', {}).get('endpoint_accessible', False)
     download_cv_working = results.get('admin_download_cv', {}).get('endpoint_accessible', False)
     
-    print("\n🔍 PROXY/FORWARDED HEADERS FIX DETERMINATION:")
+    print("\n🔍 MIDDLEWARE AUTHENTICATION DETERMINATION:")
     if security_no_auth and security_with_auth and migrate_cvs_working and download_cv_working:
-        print("✅ PROXY/FORWARDED HEADERS FIXES: COMPLETELY SUCCESSFUL")
-        print("✅ HTTPBasic authentication working behind proxy")
+        print("✅ MIDDLEWARE AUTHENTICATION: COMPLETELY SUCCESSFUL")
+        print("✅ Custom AdminAuthMiddleware working independently")
         print("✅ All admin endpoints accessible with credentials")
         print("✅ Security fully implemented")
     elif security_no_auth and security_with_auth:
-        print("⚠️  PROXY/FORWARDED HEADERS FIXES: PARTIALLY SUCCESSFUL")
-        print("✅ Authentication working behind proxy")
+        print("⚠️  MIDDLEWARE AUTHENTICATION: PARTIALLY SUCCESSFUL")
+        print("✅ Custom AdminAuthMiddleware working")
         print("❌ Some admin endpoints still have routing issues")
     else:
-        print("❌ PROXY/FORWARDED HEADERS FIXES: FAILED")
-        print("❌ Authentication not working properly behind proxy")
+        print("❌ MIDDLEWARE AUTHENTICATION: FAILED")
+        print("❌ Custom AdminAuthMiddleware not working properly")
         print("❌ Critical security and routing issues remain")
     
     return results
