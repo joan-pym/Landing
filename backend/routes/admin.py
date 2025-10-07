@@ -276,3 +276,45 @@ async def test_integrations():
     except Exception as e:
         logger.error(f"Test integrations error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/download-cv/{registration_id}")
+async def download_cv(registration_id: str):
+    """Download CV file by registration ID"""
+    try:
+        # Get registration from database
+        registration = await db_service.get_registration_by_id(registration_id)
+        if not registration:
+            raise HTTPException(status_code=404, detail="Registro no encontrado")
+        
+        # Check if CV file exists locally
+        if hasattr(registration, 'cv_file_path') and registration.cv_file_path:
+            cv_path = Path(registration.cv_file_path)
+            if cv_path.exists():
+                from fastapi.responses import FileResponse
+                return FileResponse(
+                    path=cv_path,
+                    filename=registration.cv_filename,
+                    media_type='application/octet-stream'
+                )
+        
+        # If not local, try to download from Google Drive
+        from services.google_apis_service import GoogleAPIsService
+        google_service = GoogleAPIsService()
+        
+        if google_service.is_authenticated() and hasattr(registration, 'cv_drive_id') and registration.cv_drive_id:
+            # Download from Google Drive
+            drive_content = await google_service.download_from_drive(registration.cv_drive_id)
+            if drive_content:
+                return Response(
+                    content=drive_content,
+                    media_type='application/octet-stream',
+                    headers={"Content-Disposition": f"attachment; filename={registration.cv_filename}"}
+                )
+        
+        raise HTTPException(status_code=404, detail="CV no encontrado")
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Download CV error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error descargando CV")
