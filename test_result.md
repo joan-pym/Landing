@@ -218,6 +218,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "TESTING CONFIRMADO: Registration API funcionando perfectamente. Test exitoso con debugging completo. Registro ID: 0b865536-1d8f-40ad-a8fa-8063e0f701a3. Todas las integraciones Google funcionando."
+      - working: true
+        agent: "testing"
+        comment: "VERIFICACIÓN INMEDIATA POST-OAUTH: Registration API funcionando perfectamente con Google APIs reales. Test con datos exactos del usuario exitoso. Registro ID: 6f2d50e1-e4ed-4149-b6bc-945f00dcb47e. Respuesta: 'Datos guardados en Google Sheets y Drive'. Tiempo: 3.01s. Base de datos incrementada correctamente."
 
 frontend:
   - task: "Bilingual Landing Page"
