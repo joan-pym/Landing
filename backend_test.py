@@ -17,8 +17,13 @@ from datetime import datetime
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-# Production URL
-BASE_URL = "https://pymetra.com"
+# Production URL (external) - has proxy/ingress issues
+EXTERNAL_URL = "https://pymetra.com"
+# Local URL for testing implementations
+LOCAL_URL = "http://localhost:8001"
+
+# Use local URL for testing implementations
+BASE_URL = LOCAL_URL
 
 # Admin credentials
 ADMIN_USERNAME = "pymetra_admin"
