@@ -268,7 +268,7 @@ backend:
     implemented: true
     working: false
     file: "/app/backend/routes/admin.py"
-    stuck_count: 2
+    stuck_count: 3
     priority: "medium"
     needs_retesting: false
     status_history:
@@ -278,6 +278,9 @@ backend:
       - working: false
         agent: "testing"
         comment: "TESTING POST-FIXES PROXY/FORWARDED HEADERS: FALLO CONFIRMADO. Endpoint /api/admin/download-cv/{id} sigue retornando 404 en producción externa después de implementar --forwarded-allow-ips='*' y TrustedHostMiddleware. Proxy/ingress no routing este endpoint correctamente. Mismo patrón que migrate-cvs."
+      - working: false
+        agent: "testing"
+        comment: "TESTING MIDDLEWARE AUTHENTICATION CUSTOM COMPLETADO: FALLO CONFIRMADO. AdminAuthMiddleware implementado correctamente pero endpoint /api/admin/download-cv/{id} sigue retornando 404 externamente. Local: funcionaría con middleware, External: 404 (proxy/ingress blocking endpoint completamente). Mismo patrón que migrate-cvs - proxy tiene routing rules que bloquean estos endpoints específicos."
 
 frontend:
   - task: "Bilingual Landing Page"
