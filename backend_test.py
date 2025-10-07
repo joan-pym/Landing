@@ -335,14 +335,14 @@ startxref
         return results
 
 def main():
-    """Main test execution"""
+    """Main test execution - OAuth Verification Focus"""
     tester = PymetraBackendTester()
-    results = tester.run_all_tests()
+    results = tester.run_oauth_verification_tests()
     
     # Print final summary
-    print("\n" + "="*60)
-    print("PYMETRA BACKEND TEST RESULTS")
-    print("="*60)
+    print("\n" + "="*80)
+    print("PYMETRA OAUTH VERIFICATION TEST RESULTS")
+    print("="*80)
     
     total_tests = len(results)
     passed_tests = sum(1 for r in results.values() if r.get('success'))
@@ -352,13 +352,45 @@ def main():
     print(f"Failed: {total_tests - passed_tests}")
     print()
     
+    # Detailed results
     for test_name, result in results.items():
         status = "✅ PASS" if result.get('success') else "❌ FAIL"
         print(f"{test_name.upper()}: {status}")
         if not result.get('success'):
             print(f"  Error: {result.get('error', 'Unknown error')}")
+        
+        # Special handling for key results
+        if test_name == 'oauth_status' and result.get('success'):
+            auth_data = result.get('data', {})
+            print(f"  Authenticated: {auth_data.get('authenticated', False)}")
+        
+        if test_name == 'oauth_verification_registration' and result.get('success'):
+            reg_data = result.get('data', {})
+            print(f"  Registration ID: {reg_data.get('registration_id', 'N/A')}")
+            print(f"  Email Sent: {result.get('email_sent', False)}")
+            print(f"  CV Saved: {result.get('cv_saved', False)}")
+            print(f"  Google APIs Working: {result.get('google_apis_working', False)}")
+        
+        if 'database_count' in test_name and result.get('success'):
+            count = result.get('count', 0)
+            print(f"  Total Registrations: {count}")
     
-    print("="*60)
+    print("="*80)
+    
+    # Final determination
+    oauth_authenticated = results.get('oauth_status', {}).get('authenticated', False)
+    registration_success = results.get('oauth_verification_registration', {}).get('success', False)
+    google_apis_working = results.get('oauth_verification_registration', {}).get('google_apis_working', False)
+    
+    print("\n🔍 FINAL DETERMINATION:")
+    if oauth_authenticated and registration_success and google_apis_working:
+        print("✅ OAUTH AND GOOGLE APIS ARE WORKING CORRECTLY")
+    elif oauth_authenticated and registration_success:
+        print("⚠️  OAUTH WORKS BUT GOOGLE APIS STATUS UNCLEAR")
+    elif oauth_authenticated:
+        print("⚠️  OAUTH AUTHENTICATED BUT REGISTRATION FAILED")
+    else:
+        print("❌ OAUTH NOT WORKING - GOOGLE APIS CANNOT FUNCTION")
     
     return results
 
