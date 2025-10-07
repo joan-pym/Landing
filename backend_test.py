@@ -499,44 +499,37 @@ startxref
             logger.error(f"Exception type: {type(e).__name__}")
             return {'success': False, 'error': str(e)}
     
-    def run_complete_external_tests(self):
-        """Run complete external tests as requested by user"""
-        logger.info("=== STARTING COMPLETE EXTERNAL TESTS ===")
+    def run_proxy_forwarded_headers_tests(self):
+        """Run critical proxy/forwarded headers tests as requested by user"""
+        logger.info("=== STARTING PROXY/FORWARDED HEADERS TESTS ===")
         logger.info(f"Testing against: {self.base_url}")
         logger.info("=== CRITICAL CONTEXT ===")
-        logger.info("- Final external verification for Pymetra")
-        logger.info("- Testing updated admin panel with CV download/migration")
-        logger.info("- Testing complete registration flow")
-        logger.info("- Verifying Joan receives email and data goes to Google Sheets/Drive")
+        logger.info("- Testing fixes for proxy/forwarded headers")
+        logger.info("- Uvicorn running with --forwarded-allow-ips='*'")
+        logger.info("- TrustedHostMiddleware added to FastAPI")
+        logger.info("- Backend restarted correctly")
+        logger.info(f"- Admin credentials: {ADMIN_USERNAME}:{ADMIN_PASSWORD}")
         
         results = {}
         
-        # Test 1: OAuth Status
+        # Test 1: Admin Panel Security - WITHOUT credentials
         logger.info("\n" + "="*60)
-        results['oauth_status'] = self.test_auth_status()
+        results['admin_security_no_auth'] = self.test_admin_panel_security_without_auth()
         
-        # Test 2: Database Count (before registration)
+        # Test 2: Admin Panel Security - WITH credentials
         logger.info("\n" + "="*60)
-        results['database_count_before'] = self.test_database_count()
+        results['admin_security_with_auth'] = self.test_admin_panel_security_with_auth()
         
-        # Test 3: Updated Admin Panel
+        # Test 3: Admin CV Migration Endpoint
         logger.info("\n" + "="*60)
-        results['admin_panel_updated'] = self.test_admin_panel_updated()
+        results['admin_migrate_cvs'] = self.test_admin_migrate_cvs_endpoint()
         
-        # Test 4: CV Migration
+        # Test 4: Admin CV Download Endpoint
         logger.info("\n" + "="*60)
-        results['cv_migration'] = self.test_cv_migration()
-        
-        # Test 5: Complete External Registration
-        logger.info("\n" + "="*60)
-        results['external_registration'] = self.test_external_registration_final()
-        
-        # Test 6: Database Count (after registration)
-        logger.info("\n" + "="*60)
-        results['database_count_after'] = self.test_database_count()
+        results['admin_download_cv'] = self.test_admin_download_cv_endpoint()
         
         logger.info("\n" + "="*60)
-        logger.info("=== COMPLETE EXTERNAL TEST RESULTS SUMMARY ===")
+        logger.info("=== PROXY/FORWARDED HEADERS TEST RESULTS SUMMARY ===")
         for test_name, result in results.items():
             status = "✅ PASS" if result.get('success') else "❌ FAIL"
             logger.info(f"{test_name}: {status}")
@@ -545,47 +538,55 @@ startxref
         
         # Critical Analysis
         logger.info("\n" + "="*60)
-        logger.info("=== CRITICAL FINAL ANALYSIS ===")
+        logger.info("=== CRITICAL PROXY/FORWARDED HEADERS ANALYSIS ===")
         
-        oauth_status = results.get('oauth_status', {})
-        admin_panel = results.get('admin_panel_updated', {})
-        migration = results.get('cv_migration', {})
-        registration = results.get('external_registration', {})
+        security_no_auth = results.get('admin_security_no_auth', {})
+        security_with_auth = results.get('admin_security_with_auth', {})
+        migrate_cvs = results.get('admin_migrate_cvs', {})
+        download_cv = results.get('admin_download_cv', {})
         
-        # OAuth Status
-        if oauth_status.get('authenticated'):
-            logger.info("✅ OAuth Status: AUTHENTICATED")
+        # Security Analysis
+        if security_no_auth.get('security_working'):
+            logger.info("✅ Security: Admin panel correctly requires authentication (401 without credentials)")
         else:
-            logger.info("❌ OAuth Status: NOT AUTHENTICATED")
+            logger.info("❌ Security: CRITICAL SECURITY BREACH - Admin panel accessible without authentication")
         
-        # Admin Panel Features
-        if admin_panel.get('success'):
-            if admin_panel.get('has_download_cv') and admin_panel.get('has_migrate_cvs'):
-                logger.info("✅ Admin Panel: NEW FEATURES PRESENT")
-            else:
-                logger.info("⚠️  Admin Panel: MISSING SOME NEW FEATURES")
+        if security_with_auth.get('authenticated_access'):
+            logger.info("✅ Authentication: Admin panel accessible with correct credentials")
         else:
-            logger.info("❌ Admin Panel: NOT ACCESSIBLE")
+            logger.info("❌ Authentication: Admin panel not accessible with credentials (proxy/forwarded headers issue)")
         
-        # CV Migration
-        if migration.get('success'):
-            logger.info(f"✅ CV Migration: WORKING (Migrated: {migration.get('migrated', 0)}, Total: {migration.get('total', 0)})")
+        # Endpoint Routing Analysis
+        if migrate_cvs.get('endpoint_accessible'):
+            logger.info("✅ CV Migration: Endpoint accessible (proxy/forwarded headers working)")
         else:
-            logger.info("❌ CV Migration: FAILED")
+            logger.info("❌ CV Migration: Endpoint returns 404 (proxy/ingress routing issue)")
         
-        # Registration
-        if registration.get('success'):
-            if registration.get('google_apis_working'):
-                logger.info("✅ Registration: GOOGLE APIS CONFIRMED WORKING")
-                logger.info("✅ Joan should receive email notification")
-                logger.info("✅ Data should be in Google Sheets")
-                logger.info("✅ CV should be in Google Drive")
-            elif registration.get('email_sent') and registration.get('cv_saved'):
-                logger.info("⚠️  Registration: WORKING BUT UNCLEAR IF GOOGLE OR BACKUP")
-            else:
-                logger.info("❌ Registration: NOT WORKING PROPERLY")
+        if download_cv.get('endpoint_accessible'):
+            logger.info("✅ CV Download: Endpoint accessible (proxy/forwarded headers working)")
         else:
-            logger.info("❌ Registration: FAILED")
+            logger.info("❌ CV Download: Endpoint returns 404 (proxy/ingress routing issue)")
+        
+        # Overall Assessment
+        logger.info("\n" + "="*60)
+        logger.info("=== OVERALL PROXY/FORWARDED HEADERS FIX ASSESSMENT ===")
+        
+        security_fixed = security_no_auth.get('security_working') and security_with_auth.get('authenticated_access')
+        endpoints_fixed = migrate_cvs.get('endpoint_accessible') and download_cv.get('endpoint_accessible')
+        
+        if security_fixed and endpoints_fixed:
+            logger.info("✅ PROXY/FORWARDED HEADERS FIXES: COMPLETELY SUCCESSFUL")
+            logger.info("✅ HTTPBasic authentication working behind proxy")
+            logger.info("✅ Admin endpoints accessible with credentials")
+            logger.info("✅ Security fully implemented")
+        elif security_fixed:
+            logger.info("⚠️  PROXY/FORWARDED HEADERS FIXES: PARTIALLY SUCCESSFUL")
+            logger.info("✅ Authentication working behind proxy")
+            logger.info("❌ Some admin endpoints still have routing issues")
+        else:
+            logger.info("❌ PROXY/FORWARDED HEADERS FIXES: FAILED")
+            logger.info("❌ Authentication not working properly behind proxy")
+            logger.info("❌ Critical security and routing issues remain")
         
         return results
 
