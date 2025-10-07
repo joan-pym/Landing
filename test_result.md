@@ -308,10 +308,11 @@ metadata:
 
 test_plan:
   current_focus:
-    - "OAuth verification post-completion testing"
-  stuck_tasks: []
+    - "Complete external testing verification"
+  stuck_tasks: 
+    - "CV Migration to Google Drive"
   test_all: false
-  test_priority: "oauth_verification_complete"
+  test_priority: "external_verification_complete"
 
 agent_communication:
   - agent: "main"
