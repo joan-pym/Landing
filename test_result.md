@@ -211,7 +211,7 @@ backend:
     implemented: true
     working: false
     file: "/app/backend/routes/admin.py"
-    stuck_count: 2
+    stuck_count: 3
     priority: "high"
     needs_retesting: false
     status_history:
@@ -221,6 +221,9 @@ backend:
       - working: false
         agent: "testing"
         comment: "TESTING CRÍTICO COMPLETADO: Endpoint /api/admin/migrate-cvs sigue retornando 404 en producción externa después de restart del backend. Localmente retorna 401 (autenticación requerida), confirmando que el código está correcto. PROBLEMA CONFIRMADO: Routing issue en producción/proxy."
+      - working: false
+        agent: "testing"
+        comment: "TESTING POST-FIXES PROXY/FORWARDED HEADERS: FALLO CONFIRMADO. Endpoint /api/admin/migrate-cvs sigue retornando 404 en producción externa después de implementar --forwarded-allow-ips='*' y TrustedHostMiddleware. Local: retorna 401 (Google APIs not authenticated - correcto), External: 404 (routing issue). Proxy/ingress no routing este endpoint correctamente."
 
   - task: "Registration API with Debug Logging"
     implemented: true
