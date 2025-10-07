@@ -499,15 +499,15 @@ startxref
             logger.error(f"Exception type: {type(e).__name__}")
             return {'success': False, 'error': str(e)}
     
-    def run_proxy_forwarded_headers_tests(self):
-        """Run critical proxy/forwarded headers tests as requested by user"""
-        logger.info("=== STARTING PROXY/FORWARDED HEADERS TESTS ===")
+    def run_middleware_authentication_tests(self):
+        """Run critical middleware authentication tests as requested by user"""
+        logger.info("=== STARTING MIDDLEWARE AUTHENTICATION TESTS ===")
         logger.info(f"Testing against: {self.base_url}")
         logger.info("=== CRITICAL CONTEXT ===")
-        logger.info("- Testing fixes for proxy/forwarded headers")
-        logger.info("- Uvicorn running with --forwarded-allow-ips='*'")
-        logger.info("- TrustedHostMiddleware added to FastAPI")
-        logger.info("- Backend restarted correctly")
+        logger.info("- Testing custom AdminAuthMiddleware implementation")
+        logger.info("- Middleware handles authentication independently")
+        logger.info("- Removed HTTPBasic dependencies from endpoints")
+        logger.info("- Backend restarted successfully")
         logger.info(f"- Admin credentials: {ADMIN_USERNAME}:{ADMIN_PASSWORD}")
         
         results = {}
