@@ -19,10 +19,20 @@ logger = logging.getLogger(__name__)
 
 class DatabaseService:
     def __init__(self):
-        self.mongo_url = os.environ['MONGO_URL']
-        self.db_name = os.environ['DB_NAME']
-        self.client = AsyncIOMotorClient(self.mongo_url)
-        self.db = self.client[self.db_name]
+        # Use os.environ.get() with fallbacks to prevent KeyError crashes
+        self.mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
+        self.db_name = os.environ.get('DB_NAME', 'pymetra_registration')
+        
+        logger.info(f"DatabaseService initialized with DB: {self.db_name}")
+        logger.info(f"MongoDB URL configured: {self.mongo_url[:20]}...")
+        
+        try:
+            self.client = AsyncIOMotorClient(self.mongo_url)
+            self.db = self.client[self.db_name]
+            logger.info("DatabaseService successfully connected")
+        except Exception as e:
+            logger.error(f"DatabaseService connection failed: {str(e)}")
+            raise e
         
     async def save_registration(self, registration: AgentRegistration) -> str:
         try:
