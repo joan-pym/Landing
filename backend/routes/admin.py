@@ -316,7 +316,7 @@ async def test_integrations():
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/download-cv/{registration_id}")
-async def download_cv(registration_id: str, credentials: HTTPBasicCredentials = Depends(verify_admin_credentials)):
+async def download_cv(registration_id: str):
     """Download CV file by registration ID"""
     try:
         # Get registration from database
