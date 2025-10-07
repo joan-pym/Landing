@@ -190,7 +190,10 @@ async def admin_dashboard():
                 
                 try {
                     const response = await fetch('/api/admin/migrate-cvs', {
-                        method: 'POST'
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
                     });
                     
                     const result = await response.json();
