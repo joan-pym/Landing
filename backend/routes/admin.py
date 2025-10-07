@@ -262,7 +262,7 @@ async def export_csv(credentials: HTTPBasicCredentials = Depends(verify_admin_cr
         raise HTTPException(status_code=500, detail="Error exporting CSV")
 
 @router.get("/export/google-sheets-data")
-async def export_google_sheets_data():
+async def export_google_sheets_data(credentials: HTTPBasicCredentials = Depends(verify_admin_credentials)):
     """Get data in format ready for Google Sheets"""
     try:
         registrations = await db_service.get_all_registrations(limit=1000)
