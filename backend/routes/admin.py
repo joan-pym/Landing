@@ -318,3 +318,77 @@ async def download_cv(registration_id: str):
     except Exception as e:
         logger.error(f"Download CV error: {str(e)}")
         raise HTTPException(status_code=500, detail="Error descargando CV")
+
+@router.post("/migrate-cvs")
+async def migrate_cvs_to_drive():
+    """Migrate local CVs to Google Drive"""
+    try:
+        from services.google_apis_service import GoogleAPIsService
+        from pathlib import Path
+        
+        google_service = GoogleAPIsService()
+        
+        # Check authentication
+        if not google_service.is_authenticated():
+            raise HTTPException(status_code=401, detail="Google APIs not authenticated")
+        
+        # Get all registrations
+        registrations = await db_service.get_all_registrations(limit=1000)
+        
+        migrated_count = 0
+        failed_count = 0
+        already_in_drive = 0
+        
+        for registration in registrations:
+            # Skip if already has drive_id
+            if hasattr(registration, 'cv_drive_id') and registration.cv_drive_id:
+                already_in_drive += 1
+                continue
+            
+            # Check if local file exists
+            if hasattr(registration, 'cv_file_path') and registration.cv_file_path:
+                cv_path = Path(registration.cv_file_path)
+                if cv_path.exists():
+                    try:
+                        # Read file content
+                        with open(cv_path, 'rb') as f:
+                            cv_content = f.read()
+                        
+                        # Upload to Google Drive
+                        drive_result = await google_service.upload_to_drive(
+                            cv_content, 
+                            registration.cv_filename, 
+                            registration.email
+                        )
+                        
+                        if drive_result:
+                            # Update registration with drive info
+                            await db_service.update_registration_drive_info(
+                                registration.id,
+                                drive_result['file_id'],
+                                drive_result['web_link']
+                            )
+                            migrated_count += 1
+                        else:
+                            failed_count += 1
+                            
+                    except Exception:
+                        failed_count += 1
+                else:
+                    failed_count += 1
+            else:
+                failed_count += 1
+        
+        return {
+            "message": "Migración completada",
+            "migrated": migrated_count,
+            "already_in_drive": already_in_drive, 
+            "failed": failed_count,
+            "total": len(registrations)
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Migration error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error en migración")
