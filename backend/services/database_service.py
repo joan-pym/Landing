@@ -70,3 +70,25 @@ class DatabaseService:
         except Exception as e:
             logger.error(f"Failed to count registrations: {str(e)}")
             return 0
+    
+    async def update_registration_drive_info(self, registration_id: str, drive_id: str, drive_link: str):
+        """Update registration with Google Drive information"""
+        try:
+            result = await self.db.agent_registrations.update_one(
+                {"id": registration_id},
+                {"$set": {
+                    "cv_drive_id": drive_id,
+                    "cv_drive_link": drive_link
+                }}
+            )
+            
+            if result.modified_count > 0:
+                logger.info(f"Updated registration {registration_id} with Drive info")
+                return True
+            else:
+                logger.warning(f"No registration found to update: {registration_id}")
+                return False
+                
+        except Exception as e:
+            logger.error(f"Failed to update registration drive info: {str(e)}")
+            return False
