@@ -182,3 +182,22 @@ Sistema de registro automático Pymetra
         except Exception as e:
             logger.error(f"Error sending email via Gmail API: {str(e)}")
             return False
+    
+    async def download_from_drive(self, file_id: str):
+        """Download file from Google Drive"""
+        try:
+            if not self.is_authenticated():
+                raise Exception("Google APIs not authenticated")
+            
+            drive_service = self.oauth_service.get_service('drive', 'v3')
+            
+            # Download file content
+            request = drive_service.files().get_media(fileId=file_id)
+            file_content = request.execute()
+            
+            logger.info(f"File downloaded from Google Drive: {file_id}")
+            return file_content
+            
+        except Exception as e:
+            logger.error(f"Error downloading from Google Drive: {str(e)}")
+            return None
