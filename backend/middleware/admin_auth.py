@@ -23,14 +23,23 @@ class AdminAuthMiddleware(BaseHTTPMiddleware):
         self.admin_password = admin_password or os.getenv('ADMIN_PASSWORD', 'PymetraAdmin2024!Secure')
         
     async def dispatch(self, request: Request, call_next):
+        # Debug logging
+        logger.info(f"AdminAuthMiddleware: Processing request to {request.url.path}")
+        logger.info(f"AdminAuthMiddleware: Headers: {dict(request.headers)}")
+        
         # Only apply to admin routes
         if not request.url.path.startswith('/api/admin'):
+            logger.info(f"AdminAuthMiddleware: Skipping non-admin route: {request.url.path}")
             return await call_next(request)
+        
+        logger.info(f"AdminAuthMiddleware: Processing admin route: {request.url.path}")
         
         # Check for authentication header
         auth_header = request.headers.get('authorization', '')
+        logger.info(f"AdminAuthMiddleware: Auth header: {auth_header[:20] if auth_header else 'None'}...")
         
         if not auth_header or not auth_header.startswith('Basic '):
+            logger.warning(f"AdminAuthMiddleware: No valid auth header, returning 401")
             return self._authentication_required_response()
         
         try:
