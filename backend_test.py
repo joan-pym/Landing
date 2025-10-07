@@ -184,57 +184,90 @@ startxref
             logger.error(f"Error creating test PDF: {str(e)}")
             return None
     
-    def test_registration_with_debugging(self):
-        """Test 5: Registration Endpoint with Full Debugging"""
-        logger.info("=== TEST 5: Registration with Debugging ===")
+    def test_oauth_verification_registration(self):
+        """Test 5: OAuth Verification Registration with Specific Data"""
+        logger.info("=== TEST 5: OAuth Verification Registration ===")
         try:
             # Create test PDF
             pdf_content = self.create_test_pdf()
             if not pdf_content:
                 return {'success': False, 'error': 'Could not create test PDF'}
             
-            # Prepare form data
+            # Use EXACT data from user request
             form_data = {
-                'fullName': 'TestAgent Pymetra',
-                'email': 'test@pymetra.com',
-                'geographicArea': 'España',
-                'mainSector': 'Tecnología',
+                'fullName': 'Test OAuth Verificación Final',
+                'email': 'test.oauth.final@pymetra.com',
+                'geographicArea': 'Madrid',
+                'mainSector': 'Consultoría',
                 'language': 'es'
             }
             
             # Prepare file
             files = {
-                'cv': ('test_cv_pymetra.pdf', pdf_content, 'application/pdf')
+                'cv': ('test_oauth_final.pdf', pdf_content, 'application/pdf')
             }
             
-            logger.info(f"Sending registration request with data: {form_data}")
+            logger.info("=== OAUTH VERIFICATION TEST DATA ===")
+            logger.info(f"Form data: {form_data}")
             logger.info(f"PDF size: {len(pdf_content)} bytes")
+            logger.info("=== SENDING REGISTRATION REQUEST ===")
             
-            # Send request
+            # Send request with extended timeout for Google APIs
             response = self.session.post(
                 f"{self.base_url}/api/register-agent",
                 data=form_data,
                 files=files,
-                timeout=60
+                timeout=90  # Extended timeout for Google APIs
             )
             
+            logger.info(f"=== REGISTRATION RESPONSE ===")
             logger.info(f"Status Code: {response.status_code}")
-            logger.info(f"Response: {response.text}")
+            logger.info(f"Response Headers: {dict(response.headers)}")
+            logger.info(f"Response Body: {response.text}")
             
             if response.status_code == 200:
                 data = response.json()
-                logger.info("Registration successful!")
+                logger.info("=== REGISTRATION SUCCESS ANALYSIS ===")
                 logger.info(f"Registration ID: {data.get('registration_id')}")
-                logger.info(f"Email sent: {data.get('email_sent')}")
-                logger.info(f"CV saved: {data.get('cv_saved')}")
-                return {'success': True, 'data': data}
+                logger.info(f"Message: {data.get('message')}")
+                logger.info(f"Email sent (Google/SMTP): {data.get('email_sent')}")
+                logger.info(f"CV saved (Drive/Local): {data.get('cv_saved')}")
+                
+                # Analyze the response to determine if Google APIs worked
+                email_sent = data.get('email_sent', False)
+                cv_saved = data.get('cv_saved', False)
+                message = data.get('message', '')
+                
+                google_apis_working = False
+                if 'Google Sheets' in message and 'Drive' in message:
+                    google_apis_working = True
+                    logger.info("✅ GOOGLE APIS CONFIRMED WORKING")
+                elif email_sent and cv_saved:
+                    logger.info("⚠️  APIS WORKING BUT UNCLEAR IF GOOGLE OR BACKUP")
+                else:
+                    logger.info("❌ GOOGLE APIS LIKELY NOT WORKING")
+                
+                return {
+                    'success': True, 
+                    'data': data,
+                    'google_apis_working': google_apis_working,
+                    'email_sent': email_sent,
+                    'cv_saved': cv_saved
+                }
             else:
-                logger.error(f"Registration failed: {response.status_code}")
-                logger.error(f"Error response: {response.text}")
-                return {'success': False, 'error': f"HTTP {response.status_code}", 'response': response.text}
+                logger.error(f"=== REGISTRATION FAILED ===")
+                logger.error(f"Status: {response.status_code}")
+                logger.error(f"Error: {response.text}")
+                return {
+                    'success': False, 
+                    'error': f"HTTP {response.status_code}", 
+                    'response': response.text
+                }
                 
         except Exception as e:
-            logger.error(f"Registration test failed: {str(e)}")
+            logger.error(f"=== OAUTH VERIFICATION TEST FAILED ===")
+            logger.error(f"Exception: {str(e)}")
+            logger.error(f"Exception type: {type(e).__name__}")
             return {'success': False, 'error': str(e)}
     
     def run_all_tests(self):
