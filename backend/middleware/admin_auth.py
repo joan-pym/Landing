@@ -57,7 +57,7 @@ class AdminAuthMiddleware(BaseHTTPMiddleware):
                 return self._authentication_required_response()
             
             # Authentication successful
-            logger.info(f"Admin authenticated: {username}")
+            logger.info(f"AdminAuthMiddleware: Admin authenticated: {username}")
             return await call_next(request)
             
         except Exception as e:
