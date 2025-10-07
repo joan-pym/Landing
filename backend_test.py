@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Backend Testing Suite for Pymetra - PROXY/FORWARDED HEADERS FIXES
-Tests critical proxy/forwarded headers fixes for admin panel authentication
+Backend Testing Suite for Pymetra - MIDDLEWARE AUTHENTICATION CUSTOM
+Tests critical custom AdminAuthMiddleware implementation
 """
 
 import requests
