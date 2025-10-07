@@ -31,6 +31,13 @@ class PymetraBackendTester:
             'User-Agent': 'Pymetra-Backend-Tester/1.0'
         })
         
+        # Prepare basic auth header
+        credentials = f"{ADMIN_USERNAME}:{ADMIN_PASSWORD}"
+        encoded_credentials = base64.b64encode(credentials.encode()).decode()
+        self.auth_headers = {
+            'Authorization': f'Basic {encoded_credentials}'
+        }
+        
     def test_auth_status(self):
         """Test 1: Google APIs Authentication Status"""
         logger.info("=== TEST 1: Authentication Status ===")
