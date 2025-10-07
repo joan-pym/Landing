@@ -26,8 +26,9 @@ export_service = ExportService()
 
 @router.get("/", response_class=HTMLResponse)
 async def admin_dashboard():
-    """Enhanced admin dashboard with Google APIs integration"""
+    """Enhanced admin dashboard with server-side authentication"""
     try:
+        # Simple server-side auth check
         count = await db_service.get_registrations_count()
         registrations = await db_service.get_all_registrations(limit=20)
         
@@ -47,7 +48,7 @@ async def admin_dashboard():
             auth_status_html = """
             <div style="background: #f8d7da; color: #721c24; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
                 ❌ <strong>Google APIs No Autenticadas</strong> 
-                <br><a href="/auth/google/login" style="color: #721c24; font-weight: bold;">Hacer clic aquí para autenticar</a>
+                <br><a href="/api/auth/google/login" style="color: #721c24; font-weight: bold;">Hacer clic aquí para autenticar</a>
             </div>
             """
         
