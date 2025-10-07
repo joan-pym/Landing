@@ -270,34 +270,67 @@ startxref
             logger.error(f"Exception type: {type(e).__name__}")
             return {'success': False, 'error': str(e)}
     
-    def run_all_tests(self):
-        """Run all backend tests"""
-        logger.info("=== STARTING PYMETRA BACKEND TESTS ===")
+    def run_oauth_verification_tests(self):
+        """Run OAuth verification tests as requested by user"""
+        logger.info("=== STARTING OAUTH VERIFICATION TESTS ===")
         logger.info(f"Testing against: {self.base_url}")
+        logger.info("=== CRITICAL CONTEXT ===")
+        logger.info("- User completed OAuth flow")
+        logger.info("- /api/auth/status shows authenticated: true")
+        logger.info("- But oauth_credentials.json doesn't exist physically")
+        logger.info("- Need to verify if Google integrations work REALLY")
         
         results = {}
         
-        # Test 1: Auth Status
-        results['auth_status'] = self.test_auth_status()
+        # Test 1: Detailed OAuth Status
+        logger.info("\n" + "="*60)
+        results['oauth_status'] = self.test_auth_status()
         
-        # Test 2: Integrations
-        results['integrations'] = self.test_integrations_endpoint()
+        # Test 2: Database Count (before registration)
+        logger.info("\n" + "="*60)
+        results['database_count_before'] = self.test_database_count()
         
-        # Test 3: Database Count
-        results['database_count'] = self.test_database_count()
+        # Test 3: Critical OAuth Verification Registration
+        logger.info("\n" + "="*60)
+        results['oauth_verification_registration'] = self.test_oauth_verification_registration()
         
-        # Test 4: Admin Panel
+        # Test 4: Database Count (after registration)
+        logger.info("\n" + "="*60)
+        results['database_count_after'] = self.test_database_count()
+        
+        # Test 5: Admin Panel (to verify overall system)
+        logger.info("\n" + "="*60)
         results['admin_panel'] = self.test_admin_panel()
         
-        # Test 5: Registration with Debugging
-        results['registration'] = self.test_registration_with_debugging()
-        
-        logger.info("=== TEST RESULTS SUMMARY ===")
+        logger.info("\n" + "="*60)
+        logger.info("=== OAUTH VERIFICATION RESULTS SUMMARY ===")
         for test_name, result in results.items():
             status = "✅ PASS" if result.get('success') else "❌ FAIL"
             logger.info(f"{test_name}: {status}")
             if not result.get('success'):
                 logger.error(f"  Error: {result.get('error', 'Unknown error')}")
+        
+        # Critical Analysis
+        logger.info("\n" + "="*60)
+        logger.info("=== CRITICAL OAUTH ANALYSIS ===")
+        
+        oauth_status = results.get('oauth_status', {})
+        registration_result = results.get('oauth_verification_registration', {})
+        
+        if oauth_status.get('authenticated'):
+            logger.info("✅ OAuth Status: AUTHENTICATED")
+        else:
+            logger.info("❌ OAuth Status: NOT AUTHENTICATED")
+        
+        if registration_result.get('success'):
+            if registration_result.get('google_apis_working'):
+                logger.info("✅ Google APIs: CONFIRMED WORKING")
+            elif registration_result.get('email_sent') and registration_result.get('cv_saved'):
+                logger.info("⚠️  Google APIs: WORKING BUT UNCLEAR IF GOOGLE OR BACKUP")
+            else:
+                logger.info("❌ Google APIs: NOT WORKING PROPERLY")
+        else:
+            logger.info("❌ Registration: FAILED - Cannot verify Google APIs")
         
         return results
 
