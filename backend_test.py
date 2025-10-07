@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Backend Testing Suite for Pymetra
-Tests critical Google APIs integration issues in production
+Backend Testing Suite for Pymetra - PROXY/FORWARDED HEADERS FIXES
+Tests critical proxy/forwarded headers fixes for admin panel authentication
 """
 
 import requests
@@ -9,6 +9,7 @@ import json
 import logging
 import tempfile
 import os
+import base64
 from datetime import datetime
 
 # Configure logging
@@ -17,6 +18,10 @@ logger = logging.getLogger(__name__)
 
 # Production URL
 BASE_URL = "https://pymetra.com"
+
+# Admin credentials
+ADMIN_USERNAME = "pymetra_admin"
+ADMIN_PASSWORD = "PymetraAdmin2024!Secure"
 
 class PymetraBackendTester:
     def __init__(self):
