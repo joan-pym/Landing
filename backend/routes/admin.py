@@ -282,7 +282,7 @@ async def download_cv(registration_id: str):
     """Download CV file by registration ID"""
     try:
         # Get registration from database
-        registration = await db_service.get_registration_by_id(registration_id)
+        registration = await db_service.get_registration(registration_id)
         if not registration:
             raise HTTPException(status_code=404, detail="Registro no encontrado")
         
