@@ -529,7 +529,7 @@ startxref
         results['admin_download_cv'] = self.test_admin_download_cv_endpoint()
         
         logger.info("\n" + "="*60)
-        logger.info("=== PROXY/FORWARDED HEADERS TEST RESULTS SUMMARY ===")
+        logger.info("=== MIDDLEWARE AUTHENTICATION TEST RESULTS SUMMARY ===")
         for test_name, result in results.items():
             status = "✅ PASS" if result.get('success') else "❌ FAIL"
             logger.info(f"{test_name}: {status}")
@@ -538,7 +538,7 @@ startxref
         
         # Critical Analysis
         logger.info("\n" + "="*60)
-        logger.info("=== CRITICAL PROXY/FORWARDED HEADERS ANALYSIS ===")
+        logger.info("=== CRITICAL MIDDLEWARE AUTHENTICATION ANALYSIS ===")
         
         security_no_auth = results.get('admin_security_no_auth', {})
         security_with_auth = results.get('admin_security_with_auth', {})
@@ -547,45 +547,45 @@ startxref
         
         # Security Analysis
         if security_no_auth.get('security_working'):
-            logger.info("✅ Security: Admin panel correctly requires authentication (401 without credentials)")
+            logger.info("✅ Security: AdminAuthMiddleware correctly requires authentication (401 without credentials)")
         else:
             logger.info("❌ Security: CRITICAL SECURITY BREACH - Admin panel accessible without authentication")
         
         if security_with_auth.get('authenticated_access'):
-            logger.info("✅ Authentication: Admin panel accessible with correct credentials")
+            logger.info("✅ Authentication: AdminAuthMiddleware working with correct credentials")
         else:
-            logger.info("❌ Authentication: Admin panel not accessible with credentials (proxy/forwarded headers issue)")
+            logger.info("❌ Authentication: AdminAuthMiddleware not working with credentials")
         
         # Endpoint Routing Analysis
         if migrate_cvs.get('endpoint_accessible'):
-            logger.info("✅ CV Migration: Endpoint accessible (proxy/forwarded headers working)")
+            logger.info("✅ CV Migration: Endpoint accessible (middleware authentication working)")
         else:
-            logger.info("❌ CV Migration: Endpoint returns 404 (proxy/ingress routing issue)")
+            logger.info("❌ CV Migration: Endpoint returns 404 (routing issue persists)")
         
         if download_cv.get('endpoint_accessible'):
-            logger.info("✅ CV Download: Endpoint accessible (proxy/forwarded headers working)")
+            logger.info("✅ CV Download: Endpoint accessible (middleware authentication working)")
         else:
-            logger.info("❌ CV Download: Endpoint returns 404 (proxy/ingress routing issue)")
+            logger.info("❌ CV Download: Endpoint returns 404 (routing issue persists)")
         
         # Overall Assessment
         logger.info("\n" + "="*60)
-        logger.info("=== OVERALL PROXY/FORWARDED HEADERS FIX ASSESSMENT ===")
+        logger.info("=== OVERALL MIDDLEWARE AUTHENTICATION ASSESSMENT ===")
         
         security_fixed = security_no_auth.get('security_working') and security_with_auth.get('authenticated_access')
         endpoints_fixed = migrate_cvs.get('endpoint_accessible') and download_cv.get('endpoint_accessible')
         
         if security_fixed and endpoints_fixed:
-            logger.info("✅ PROXY/FORWARDED HEADERS FIXES: COMPLETELY SUCCESSFUL")
-            logger.info("✅ HTTPBasic authentication working behind proxy")
-            logger.info("✅ Admin endpoints accessible with credentials")
+            logger.info("✅ MIDDLEWARE AUTHENTICATION: COMPLETELY SUCCESSFUL")
+            logger.info("✅ Custom AdminAuthMiddleware working independently")
+            logger.info("✅ All admin endpoints accessible with credentials")
             logger.info("✅ Security fully implemented")
         elif security_fixed:
-            logger.info("⚠️  PROXY/FORWARDED HEADERS FIXES: PARTIALLY SUCCESSFUL")
-            logger.info("✅ Authentication working behind proxy")
+            logger.info("⚠️  MIDDLEWARE AUTHENTICATION: PARTIALLY SUCCESSFUL")
+            logger.info("✅ Custom AdminAuthMiddleware working")
             logger.info("❌ Some admin endpoints still have routing issues")
         else:
-            logger.info("❌ PROXY/FORWARDED HEADERS FIXES: FAILED")
-            logger.info("❌ Authentication not working properly behind proxy")
+            logger.info("❌ MIDDLEWARE AUTHENTICATION: FAILED")
+            logger.info("❌ Custom AdminAuthMiddleware not working properly")
             logger.info("❌ Critical security and routing issues remain")
         
         return results
