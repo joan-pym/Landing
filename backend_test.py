@@ -591,13 +591,13 @@ startxref
         return results
 
 def main():
-    """Main test execution - Proxy/Forwarded Headers Testing"""
+    """Main test execution - Middleware Authentication Testing"""
     tester = PymetraBackendTester()
-    results = tester.run_proxy_forwarded_headers_tests()
+    results = tester.run_middleware_authentication_tests()
     
     # Print final summary
     print("\n" + "="*80)
-    print("PYMETRA PROXY/FORWARDED HEADERS FIX TEST RESULTS")
+    print("PYMETRA MIDDLEWARE AUTHENTICATION TEST RESULTS")
     print("="*80)
     
     total_tests = len(results)
