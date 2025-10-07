@@ -1541,13 +1541,18 @@ def main():
     
     print("="*80)
     
-    # Final determination
-    js_auth = results.get('javascript_authentication', {}).get('robust_auth_implemented', False)
-    migration_endpoint = results.get('execute_migration_endpoint', {}).get('endpoint_working', False)
-    cv_functionality = results.get('cv_functionality', {}).get('cv_functionality_working', False)
-    general_panel = results.get('general_panel', {}).get('panel_working', False)
+    # Final determination - use local results as primary
+    js_auth_local = results.get('javascript_authentication_local', {}).get('robust_auth_implemented', False)
+    migration_endpoint_local = results.get('execute_migration_endpoint_local', {}).get('endpoint_working', False)
+    cv_functionality_local = results.get('cv_functionality_local', {}).get('cv_functionality_working', False)
+    general_panel_local = results.get('general_panel_local', {}).get('panel_working', False)
     
-    solutions_working = sum([js_auth, migration_endpoint, cv_functionality, general_panel])
+    # External results
+    js_auth_external = results.get('javascript_authentication_external', {}).get('robust_auth_implemented', False)
+    migration_endpoint_external = results.get('execute_migration_endpoint_external', {}).get('endpoint_working', False)
+    
+    local_solutions_working = sum([js_auth_local, migration_endpoint_local, cv_functionality_local, general_panel_local])
+    external_solutions_working = sum([js_auth_external, migration_endpoint_external])
     
     print(f"\n🔍 FINAL SOLUTIONS DETERMINATION ({solutions_working}/4 working):")
     if solutions_working == 4:
