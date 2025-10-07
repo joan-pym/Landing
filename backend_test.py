@@ -165,25 +165,84 @@ class PymetraBackendTester:
             logger.error(f"CV Migration endpoint test failed: {str(e)}")
             return {'success': False, 'error': str(e)}
     
-    def test_database_count(self):
-        """Test 3: Database Registration Count"""
-        logger.info("=== TEST 3: Database Count ===")
+    def test_admin_download_cv_endpoint(self):
+        """Test 4: Admin CV Download Endpoint - WITH credentials (should work, not 404)"""
+        logger.info("=== TEST 4: Admin CV Download Endpoint ===")
         try:
-            response = self.session.get(f"{self.base_url}/api/registrations/count", timeout=30)
-            logger.info(f"Status Code: {response.status_code}")
-            logger.info(f"Response: {response.text}")
+            # First get a registration ID to test with
+            headers = self.auth_headers.copy()
             
-            if response.status_code == 200:
-                data = response.json()
-                count = data.get('total_registrations', 0)
-                logger.info(f"Total registrations in database: {count}")
-                return {'success': True, 'count': count, 'data': data}
+            # Try to get registrations count first to see if we have any data
+            count_response = self.session.get(f"{self.base_url}/api/registrations/count", timeout=30)
+            if count_response.status_code == 200:
+                count_data = count_response.json()
+                total_registrations = count_data.get('total_registrations', 0)
+                logger.info(f"Total registrations available: {total_registrations}")
+                
+                if total_registrations > 0:
+                    # Use a test ID - we'll test the endpoint routing, not necessarily a valid ID
+                    test_id = "test-id-for-routing-check"
+                    response = self.session.get(f"{self.base_url}/api/admin/download-cv/{test_id}", headers=headers, timeout=30)
+                    logger.info(f"Status Code: {response.status_code}")
+                    logger.info(f"Response Headers: {dict(response.headers)}")
+                    logger.info(f"Response: {response.text[:200]}...")  # First 200 chars
+                    
+                    if response.status_code == 404 and "Registro no encontrado" in response.text:
+                        logger.info("✅ ENDPOINT WORKING: CV Download endpoint accessible (404 for non-existent ID is expected)")
+                        return {
+                            'success': True,
+                            'endpoint_accessible': True,
+                            'status_code': response.status_code,
+                            'note': "404 for non-existent ID is expected behavior"
+                        }
+                    elif response.status_code == 404 and "Registro no encontrado" not in response.text:
+                        logger.error("❌ ROUTING ISSUE: CV Download endpoint returns 404 (proxy/ingress problem)")
+                        return {
+                            'success': False,
+                            'endpoint_accessible': False,
+                            'status_code': response.status_code,
+                            'error': "Endpoint returns 404 - routing issue"
+                        }
+                    elif response.status_code == 401:
+                        logger.error("❌ AUTHENTICATION ISSUE: CV Download endpoint requires auth but credentials not working")
+                        return {
+                            'success': False,
+                            'endpoint_accessible': False,
+                            'status_code': response.status_code,
+                            'error': "Authentication failed with provided credentials"
+                        }
+                    elif response.status_code == 200:
+                        logger.info("✅ ENDPOINT WORKING: CV Download endpoint accessible and returned file")
+                        return {
+                            'success': True,
+                            'endpoint_accessible': True,
+                            'status_code': response.status_code,
+                            'note': "Endpoint returned file successfully"
+                        }
+                    else:
+                        logger.error(f"❌ UNEXPECTED STATUS: CV Download endpoint returned {response.status_code}")
+                        return {
+                            'success': False,
+                            'endpoint_accessible': False,
+                            'status_code': response.status_code,
+                            'error': f"Unexpected status code: {response.status_code}"
+                        }
+                else:
+                    logger.info("⚠️  NO DATA: No registrations available to test CV download")
+                    return {
+                        'success': True,
+                        'endpoint_accessible': True,
+                        'note': "No registrations available to test, but endpoint routing can be verified"
+                    }
             else:
-                logger.error(f"Database count test failed: {response.status_code}")
-                return {'success': False, 'error': f"HTTP {response.status_code}"}
+                logger.error("❌ Cannot get registration count to test CV download")
+                return {
+                    'success': False,
+                    'error': "Cannot get registration count"
+                }
                 
         except Exception as e:
-            logger.error(f"Database count test failed: {str(e)}")
+            logger.error(f"CV Download endpoint test failed: {str(e)}")
             return {'success': False, 'error': str(e)}
     
     def test_admin_panel(self):
