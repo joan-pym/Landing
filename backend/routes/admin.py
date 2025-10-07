@@ -357,7 +357,7 @@ async def download_cv(registration_id: str):
         raise HTTPException(status_code=500, detail="Error descargando CV")
 
 @router.post("/migrate-cvs")
-async def migrate_cvs_to_drive(credentials: HTTPBasicCredentials = Depends(verify_admin_credentials)):
+async def migrate_cvs_to_drive():
     """Migrate local CVs to Google Drive"""
     try:
         from services.google_apis_service import GoogleAPIsService
