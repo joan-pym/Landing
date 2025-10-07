@@ -1,6 +1,7 @@
 from fastapi import FastAPI, APIRouter
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
+from starlette.middleware.trustedhost import TrustedHostMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import logging
@@ -14,6 +15,9 @@ load_dotenv(ROOT_DIR / '.env')
 
 # Create the main app
 app = FastAPI(title="Pymetra Registration API", version="1.0.0")
+
+# Trust proxy headers (for proper authentication behind proxy/ingress)
+app.add_middleware(TrustedHostMiddleware, allowed_hosts=["*"])
 
 # CORS configuration
 app.add_middleware(
