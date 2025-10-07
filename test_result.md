@@ -240,6 +240,30 @@ backend:
         agent: "testing"
         comment: "VERIFICACIÓN INMEDIATA POST-OAUTH: Registration API funcionando perfectamente con Google APIs reales. Test con datos exactos del usuario exitoso. Registro ID: 6f2d50e1-e4ed-4149-b6bc-945f00dcb47e. Respuesta: 'Datos guardados en Google Sheets y Drive'. Tiempo: 3.01s. Base de datos incrementada correctamente."
 
+  - task: "Admin Panel Basic Authentication Security"
+    implemented: true
+    working: false
+    file: "/app/backend/routes/admin.py"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "PROBLEMA CRÍTICO DE SEGURIDAD: Panel admin /api/admin/ accesible SIN autenticación en producción. Credenciales pymetra_admin:PymetraAdmin2024!Secure no se requieren. Otros endpoints admin (CSV export) SÍ requieren autenticación. Problema específico con ruta principal del admin panel."
+
+  - task: "Admin CV Download Functionality"
+    implemented: true
+    working: false
+    file: "/app/backend/routes/admin.py"
+    stuck_count: 1
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "PROBLEMA IDENTIFICADO: Endpoint /api/admin/download-cv/{id} retorna 404 en producción. Código implementado correctamente pero no accesible externamente. Posible routing issue similar al de migrate-cvs."
+
 frontend:
   - task: "Bilingual Landing Page"
     implemented: true
