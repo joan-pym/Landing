@@ -45,7 +45,7 @@ def verify_admin_credentials(credentials: HTTPBasicCredentials = Depends(securit
     return credentials
 
 @router.get("/", response_class=HTMLResponse)
-async def admin_dashboard():
+async def admin_dashboard(credentials: HTTPBasicCredentials = Depends(verify_admin_credentials)):
     """Enhanced admin dashboard with Google APIs integration"""
     try:
         count = await db_service.get_registrations_count()
