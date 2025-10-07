@@ -177,6 +177,38 @@ async def admin_dashboard():
                     </p>
                 </div>
             </div>
+            
+            <script>
+            async function migrateCvs() {
+                if (!confirm('¿Migrar todos los CVs locales a Google Drive? Esta operación puede tomar varios minutos.')) {
+                    return;
+                }
+                
+                const button = event.target;
+                button.disabled = true;
+                button.textContent = '⏳ Migrando...';
+                
+                try {
+                    const response = await fetch('/api/admin/migrate-cvs', {
+                        method: 'POST'
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (response.ok) {
+                        alert(`Migración completada:\\n✅ Migrados: ${result.migrated}\\n✅ Ya en Drive: ${result.already_in_drive}\\n❌ Fallidos: ${result.failed}\\n📊 Total: ${result.total}`);
+                        location.reload();
+                    } else {
+                        alert(`Error en migración: ${result.detail || 'Error desconocido'}`);
+                    }
+                } catch (error) {
+                    alert(`Error de conexión: ${error.message}`);
+                } finally {
+                    button.disabled = false;
+                    button.textContent = '☁️ Migrar CVs a Google Drive';
+                }
+            }
+            </script>
         </body>
         </html>
         """
