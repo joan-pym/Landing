@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Backend Testing Suite for Pymetra - MIDDLEWARE AUTHENTICATION CUSTOM
-Tests critical custom AdminAuthMiddleware implementation
+Backend Testing Suite for Pymetra - TEMPORARY SOLUTIONS VERIFICATION
+Tests 5 temporary solutions implemented to resolve proxy/ingress issues
 """
 
 import requests
@@ -10,6 +10,7 @@ import logging
 import tempfile
 import os
 import base64
+import subprocess
 from datetime import datetime
 
 # Configure logging
