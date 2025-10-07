@@ -203,6 +203,21 @@ backend:
       - working: true
         agent: "main"
         comment: "Panel admin funcionando en /api/admin/ con exportación CSV"
+      - working: true
+        agent: "testing"
+        comment: "TESTING CONFIRMADO: Panel admin actualizado funcionando correctamente. Nuevas características presentes: descarga de CVs, referencias a Google Drive. CSV export funcional. 19 registros mostrados correctamente."
+
+  - task: "CV Migration to Google Drive"
+    implemented: true
+    working: false
+    file: "/app/backend/routes/admin.py"
+    stuck_count: 1
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "PROBLEMA IDENTIFICADO: Endpoint /api/admin/migrate-cvs retorna 404 en producción externa (https://pymetra.com) pero funciona localmente (localhost:8001). Ruta existe en código y router. Posible problema de routing en producción o proxy/ingress configuration."
 
   - task: "Registration API with Debug Logging"
     implemented: true
