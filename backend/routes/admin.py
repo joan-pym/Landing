@@ -184,25 +184,64 @@ async def admin_dashboard():
             <script>
             // Temporary client-side authentication layer
             function checkAdminAuth() {
-                const savedAuth = sessionStorage.getItem('pymetra_admin_auth');
-                if (!savedAuth) {
-                    const username = prompt('Usuario Admin:');
-                    const password = prompt('Contraseña Admin:');
-                    
-                    if (username !== 'pymetra_admin' || password !== 'PymetraAdmin2024!Secure') {
-                        alert('Credenciales incorrectas');
-                        window.location.href = '/';
-                        return false;
+                // Strong authentication check
+                const currentAuth = sessionStorage.getItem('pymetra_admin_auth');
+                const currentTime = new Date().getTime();
+                
+                // Check if auth exists and is less than 1 hour old
+                if (currentAuth) {
+                    const authData = JSON.parse(currentAuth);
+                    if (currentTime - authData.timestamp < 3600000) { // 1 hour
+                        return true;
                     }
-                    
-                    sessionStorage.setItem('pymetra_admin_auth', 'authenticated');
                 }
+                
+                // Clear old auth
+                sessionStorage.removeItem('pymetra_admin_auth');
+                
+                // Show login form
+                const username = prompt('🔐 ACCESO RESTRINGIDO - Usuario Admin:', '');
+                if (!username) {
+                    window.location.href = 'https://pymetra.com';
+                    return false;
+                }
+                
+                const password = prompt('🔐 Contraseña Admin:', '');
+                if (!password) {
+                    window.location.href = 'https://pymetra.com';
+                    return false;
+                }
+                
+                // Verify credentials
+                if (username !== 'pymetra_admin' || password !== 'PymetraAdmin2024!Secure') {
+                    alert('❌ Credenciales incorrectas. Acceso denegado.');
+                    window.location.href = 'https://pymetra.com';
+                    return false;
+                }
+                
+                // Save auth with timestamp
+                const authData = {
+                    timestamp: currentTime,
+                    user: username
+                };
+                sessionStorage.setItem('pymetra_admin_auth', JSON.stringify(authData));
                 return true;
             }
             
-            // Check authentication on page load
+            // Force authentication check on page load
             if (!checkAdminAuth()) {
-                document.body.innerHTML = '<h1>Acceso Denegado</h1>';
+                document.body.innerHTML = '<div style="text-align: center; padding: 50px;"><h1>🚫 Acceso Denegado</h1><p>Redirigiendo...</p></div>';
+                setTimeout(() => window.location.href = 'https://pymetra.com', 2000);
+            } else {
+                // Add logout button
+                const logoutBtn = document.createElement('button');
+                logoutBtn.innerHTML = '🚪 Cerrar Sesión';
+                logoutBtn.style.cssText = 'position: fixed; top: 10px; right: 10px; background: #dc3545; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; z-index: 9999;';
+                logoutBtn.onclick = function() {
+                    sessionStorage.removeItem('pymetra_admin_auth');
+                    window.location.reload();
+                };
+                document.body.appendChild(logoutBtn);
             }
             
             async function migrateCvs() {
