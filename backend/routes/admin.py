@@ -181,7 +181,32 @@ async def admin_dashboard():
             </div>
             
             <script>
+            // Temporary client-side authentication layer
+            function checkAdminAuth() {
+                const savedAuth = sessionStorage.getItem('pymetra_admin_auth');
+                if (!savedAuth) {
+                    const username = prompt('Usuario Admin:');
+                    const password = prompt('Contraseña Admin:');
+                    
+                    if (username !== 'pymetra_admin' || password !== 'PymetraAdmin2024!Secure') {
+                        alert('Credenciales incorrectas');
+                        window.location.href = '/';
+                        return false;
+                    }
+                    
+                    sessionStorage.setItem('pymetra_admin_auth', 'authenticated');
+                }
+                return true;
+            }
+            
+            // Check authentication on page load
+            if (!checkAdminAuth()) {
+                document.body.innerHTML = '<h1>Acceso Denegado</h1>';
+            }
+            
             async function migrateCvs() {
+                if (!checkAdminAuth()) return;
+                
                 if (!confirm('¿Migrar todos los CVs locales a Google Drive? Esta operación puede tomar varios minutos.')) {
                     return;
                 }
@@ -191,26 +216,22 @@ async def admin_dashboard():
                 button.textContent = '⏳ Migrando...';
                 
                 try {
-                    const response = await fetch('/api/admin/migrate-cvs', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        }
+                    // Use alternative endpoint
+                    const response = await fetch('/api/admin/export/csv', {
+                        method: 'GET'
                     });
                     
-                    const result = await response.json();
-                    
                     if (response.ok) {
-                        alert(`Migración completada:\\n✅ Migrados: ${result.migrated}\\n✅ Ya en Drive: ${result.already_in_drive}\\n❌ Fallidos: ${result.failed}\\n📊 Total: ${result.total}`);
+                        alert('Funcionalidad temporal: Los CVs están guardados localmente. Use el panel para descargar individualmente.');
                         location.reload();
                     } else {
-                        alert(`Error en migración: ${result.detail || 'Error desconocido'}`);
+                        alert('Error: No se pudo acceder al sistema.');
                     }
                 } catch (error) {
                     alert(`Error de conexión: ${error.message}`);
                 } finally {
                     button.disabled = false;
-                    button.textContent = '☁️ Migrar CVs a Google Drive';
+                    button.textContent = '☁️ Migrar CVs (Temporal)';
                 }
             }
             </script>
