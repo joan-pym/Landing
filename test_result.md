@@ -247,7 +247,7 @@ backend:
     implemented: true
     working: false
     file: "/app/backend/routes/admin.py"
-    stuck_count: 2
+    stuck_count: 3
     priority: "high"
     needs_retesting: false
     status_history:
@@ -257,6 +257,9 @@ backend:
       - working: false
         agent: "testing"
         comment: "TESTING POST-FIXES COMPLETADO: FALLO CRÍTICO CONFIRMADO. Uvicorn ejecutándose con --forwarded-allow-ips='*' y TrustedHostMiddleware añadido, pero proxy/ingress COMPLETAMENTE BYPASSING autenticación HTTPBasic. Local: /api/admin/ retorna 401 sin auth (correcto), External: retorna 200 sin auth (CRÍTICO). Mismo problema con /api/admin/export/csv. Proxy no forwarding authentication headers correctamente."
+      - working: false
+        agent: "testing"
+        comment: "TESTING MIDDLEWARE AUTHENTICATION CUSTOM COMPLETADO: FALLO CRÍTICO CONFIRMADO. AdminAuthMiddleware implementado correctamente y funcionando localmente (401 sin auth, 200 con auth). PROBLEMA: Proxy/ingress SELECTIVAMENTE bypassing middleware. Local: /api/admin/ retorna 401 sin auth (correcto), External: /api/admin/ retorna 200 sin auth (CRÍTICO), pero /api/admin/export/csv SÍ requiere auth externamente. Proxy tiene routing rules específicas que permiten bypass de autenticación para ruta principal admin."
 
   - task: "Admin CV Download Functionality"
     implemented: true
