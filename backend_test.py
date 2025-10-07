@@ -348,19 +348,19 @@ startxref
             logger.error(f"Exception type: {type(e).__name__}")
             return {'success': False, 'error': str(e)}
     
-    def run_oauth_verification_tests(self):
-        """Run OAuth verification tests as requested by user"""
-        logger.info("=== STARTING OAUTH VERIFICATION TESTS ===")
+    def run_complete_external_tests(self):
+        """Run complete external tests as requested by user"""
+        logger.info("=== STARTING COMPLETE EXTERNAL TESTS ===")
         logger.info(f"Testing against: {self.base_url}")
         logger.info("=== CRITICAL CONTEXT ===")
-        logger.info("- User completed OAuth flow")
-        logger.info("- /api/auth/status shows authenticated: true")
-        logger.info("- But oauth_credentials.json doesn't exist physically")
-        logger.info("- Need to verify if Google integrations work REALLY")
+        logger.info("- Final external verification for Pymetra")
+        logger.info("- Testing updated admin panel with CV download/migration")
+        logger.info("- Testing complete registration flow")
+        logger.info("- Verifying Joan receives email and data goes to Google Sheets/Drive")
         
         results = {}
         
-        # Test 1: Detailed OAuth Status
+        # Test 1: OAuth Status
         logger.info("\n" + "="*60)
         results['oauth_status'] = self.test_auth_status()
         
@@ -368,20 +368,24 @@ startxref
         logger.info("\n" + "="*60)
         results['database_count_before'] = self.test_database_count()
         
-        # Test 3: Critical OAuth Verification Registration
+        # Test 3: Updated Admin Panel
         logger.info("\n" + "="*60)
-        results['oauth_verification_registration'] = self.test_oauth_verification_registration()
+        results['admin_panel_updated'] = self.test_admin_panel_updated()
         
-        # Test 4: Database Count (after registration)
+        # Test 4: CV Migration
+        logger.info("\n" + "="*60)
+        results['cv_migration'] = self.test_cv_migration()
+        
+        # Test 5: Complete External Registration
+        logger.info("\n" + "="*60)
+        results['external_registration'] = self.test_external_registration_final()
+        
+        # Test 6: Database Count (after registration)
         logger.info("\n" + "="*60)
         results['database_count_after'] = self.test_database_count()
         
-        # Test 5: Admin Panel (to verify overall system)
         logger.info("\n" + "="*60)
-        results['admin_panel'] = self.test_admin_panel()
-        
-        logger.info("\n" + "="*60)
-        logger.info("=== OAUTH VERIFICATION RESULTS SUMMARY ===")
+        logger.info("=== COMPLETE EXTERNAL TEST RESULTS SUMMARY ===")
         for test_name, result in results.items():
             status = "✅ PASS" if result.get('success') else "❌ FAIL"
             logger.info(f"{test_name}: {status}")
@@ -390,25 +394,47 @@ startxref
         
         # Critical Analysis
         logger.info("\n" + "="*60)
-        logger.info("=== CRITICAL OAUTH ANALYSIS ===")
+        logger.info("=== CRITICAL FINAL ANALYSIS ===")
         
         oauth_status = results.get('oauth_status', {})
-        registration_result = results.get('oauth_verification_registration', {})
+        admin_panel = results.get('admin_panel_updated', {})
+        migration = results.get('cv_migration', {})
+        registration = results.get('external_registration', {})
         
+        # OAuth Status
         if oauth_status.get('authenticated'):
             logger.info("✅ OAuth Status: AUTHENTICATED")
         else:
             logger.info("❌ OAuth Status: NOT AUTHENTICATED")
         
-        if registration_result.get('success'):
-            if registration_result.get('google_apis_working'):
-                logger.info("✅ Google APIs: CONFIRMED WORKING")
-            elif registration_result.get('email_sent') and registration_result.get('cv_saved'):
-                logger.info("⚠️  Google APIs: WORKING BUT UNCLEAR IF GOOGLE OR BACKUP")
+        # Admin Panel Features
+        if admin_panel.get('success'):
+            if admin_panel.get('has_download_cv') and admin_panel.get('has_migrate_cvs'):
+                logger.info("✅ Admin Panel: NEW FEATURES PRESENT")
             else:
-                logger.info("❌ Google APIs: NOT WORKING PROPERLY")
+                logger.info("⚠️  Admin Panel: MISSING SOME NEW FEATURES")
         else:
-            logger.info("❌ Registration: FAILED - Cannot verify Google APIs")
+            logger.info("❌ Admin Panel: NOT ACCESSIBLE")
+        
+        # CV Migration
+        if migration.get('success'):
+            logger.info(f"✅ CV Migration: WORKING (Migrated: {migration.get('migrated', 0)}, Total: {migration.get('total', 0)})")
+        else:
+            logger.info("❌ CV Migration: FAILED")
+        
+        # Registration
+        if registration.get('success'):
+            if registration.get('google_apis_working'):
+                logger.info("✅ Registration: GOOGLE APIS CONFIRMED WORKING")
+                logger.info("✅ Joan should receive email notification")
+                logger.info("✅ Data should be in Google Sheets")
+                logger.info("✅ CV should be in Google Drive")
+            elif registration.get('email_sent') and registration.get('cv_saved'):
+                logger.info("⚠️  Registration: WORKING BUT UNCLEAR IF GOOGLE OR BACKUP")
+            else:
+                logger.info("❌ Registration: NOT WORKING PROPERLY")
+        else:
+            logger.info("❌ Registration: FAILED")
         
         return results
 
