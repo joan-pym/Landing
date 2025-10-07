@@ -326,7 +326,6 @@ async def download_cv(registration_id: str):
         if hasattr(registration, 'cv_file_path') and registration.cv_file_path:
             cv_path = Path(registration.cv_file_path)
             if cv_path.exists():
-                from fastapi.responses import FileResponse
                 return FileResponse(
                     path=cv_path,
                     filename=registration.cv_filename,
