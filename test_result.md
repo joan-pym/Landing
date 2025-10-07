@@ -244,13 +244,16 @@ backend:
     implemented: true
     working: false
     file: "/app/backend/routes/admin.py"
-    stuck_count: 1
+    stuck_count: 2
     priority: "high"
     needs_retesting: false
     status_history:
       - working: false
         agent: "testing"
         comment: "PROBLEMA CRÍTICO DE SEGURIDAD: Panel admin /api/admin/ accesible SIN autenticación en producción. Credenciales pymetra_admin:PymetraAdmin2024!Secure no se requieren. Otros endpoints admin (CSV export) SÍ requieren autenticación. Problema específico con ruta principal del admin panel."
+      - working: false
+        agent: "testing"
+        comment: "TESTING POST-FIXES COMPLETADO: FALLO CRÍTICO CONFIRMADO. Uvicorn ejecutándose con --forwarded-allow-ips='*' y TrustedHostMiddleware añadido, pero proxy/ingress COMPLETAMENTE BYPASSING autenticación HTTPBasic. Local: /api/admin/ retorna 401 sin auth (correcto), External: retorna 200 sin auth (CRÍTICO). Mismo problema con /api/admin/export/csv. Proxy no forwarding authentication headers correctamente."
 
   - task: "Admin CV Download Functionality"
     implemented: true
