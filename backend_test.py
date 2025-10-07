@@ -184,9 +184,79 @@ startxref
             logger.error(f"Error creating test PDF: {str(e)}")
             return None
     
-    def test_oauth_verification_registration(self):
-        """Test 5: OAuth Verification Registration with Specific Data"""
-        logger.info("=== TEST 5: OAuth Verification Registration ===")
+    def test_admin_panel_updated(self):
+        """Test 5: Updated Admin Panel with New Features"""
+        logger.info("=== TEST 5: Updated Admin Panel ===")
+        try:
+            response = self.session.get(f"{self.base_url}/api/admin/", timeout=30)
+            logger.info(f"Status Code: {response.status_code}")
+            logger.info(f"Response Length: {len(response.text)} characters")
+            
+            if response.status_code == 200:
+                content = response.text.lower()
+                
+                # Check for new features
+                has_download_cv = 'download-cv' in content or 'descargar' in content
+                has_migrate_cvs = 'migrate-cvs' in content or 'migrar' in content
+                has_google_drive = 'google drive' in content or 'drive' in content
+                has_pymetra = 'pymetra' in content
+                
+                logger.info(f"Has CV Download: {has_download_cv}")
+                logger.info(f"Has CV Migration: {has_migrate_cvs}")
+                logger.info(f"Has Google Drive: {has_google_drive}")
+                logger.info(f"Contains Pymetra: {has_pymetra}")
+                
+                return {
+                    'success': True,
+                    'has_download_cv': has_download_cv,
+                    'has_migrate_cvs': has_migrate_cvs,
+                    'has_google_drive': has_google_drive,
+                    'has_pymetra': has_pymetra,
+                    'content_length': len(response.text)
+                }
+            else:
+                logger.error(f"Admin panel test failed: {response.status_code}")
+                return {'success': False, 'error': f"HTTP {response.status_code}"}
+                
+        except Exception as e:
+            logger.error(f"Admin panel test failed: {str(e)}")
+            return {'success': False, 'error': str(e)}
+    
+    def test_cv_migration(self):
+        """Test 6: CV Migration to Google Drive"""
+        logger.info("=== TEST 6: CV Migration ===")
+        try:
+            response = self.session.post(f"{self.base_url}/api/admin/migrate-cvs", timeout=120)
+            logger.info(f"Status Code: {response.status_code}")
+            logger.info(f"Response: {response.text}")
+            
+            if response.status_code == 200:
+                data = response.json()
+                logger.info("=== MIGRATION RESULTS ===")
+                logger.info(f"Migrated: {data.get('migrated', 0)}")
+                logger.info(f"Already in Drive: {data.get('already_in_drive', 0)}")
+                logger.info(f"Failed: {data.get('failed', 0)}")
+                logger.info(f"Total: {data.get('total', 0)}")
+                
+                return {
+                    'success': True,
+                    'data': data,
+                    'migrated': data.get('migrated', 0),
+                    'already_in_drive': data.get('already_in_drive', 0),
+                    'failed': data.get('failed', 0),
+                    'total': data.get('total', 0)
+                }
+            else:
+                logger.error(f"Migration test failed: {response.status_code}")
+                return {'success': False, 'error': f"HTTP {response.status_code}", 'response': response.text}
+                
+        except Exception as e:
+            logger.error(f"Migration test failed: {str(e)}")
+            return {'success': False, 'error': str(e)}
+    
+    def test_external_registration_final(self):
+        """Test 7: Complete External Registration Test"""
+        logger.info("=== TEST 7: External Registration Final ===")
         try:
             # Create test PDF
             pdf_content = self.create_test_pdf()
@@ -195,19 +265,19 @@ startxref
             
             # Use EXACT data from user request
             form_data = {
-                'fullName': 'Test OAuth Verificación Final',
-                'email': 'test.oauth.final@pymetra.com',
-                'geographicArea': 'Madrid',
-                'mainSector': 'Consultoría',
+                'fullName': 'Usuario Test Externo Final',
+                'email': 'test.externo.final@pymetra.com',
+                'geographicArea': 'Barcelona',
+                'mainSector': 'Marketing Digital',
                 'language': 'es'
             }
             
             # Prepare file
             files = {
-                'cv': ('test_oauth_final.pdf', pdf_content, 'application/pdf')
+                'cv': ('usuario_test_externo_final.pdf', pdf_content, 'application/pdf')
             }
             
-            logger.info("=== OAUTH VERIFICATION TEST DATA ===")
+            logger.info("=== EXTERNAL REGISTRATION TEST DATA ===")
             logger.info(f"Form data: {form_data}")
             logger.info(f"PDF size: {len(pdf_content)} bytes")
             logger.info("=== SENDING REGISTRATION REQUEST ===")
@@ -230,8 +300,8 @@ startxref
                 logger.info("=== REGISTRATION SUCCESS ANALYSIS ===")
                 logger.info(f"Registration ID: {data.get('registration_id')}")
                 logger.info(f"Message: {data.get('message')}")
-                logger.info(f"Email sent (Google/SMTP): {data.get('email_sent')}")
-                logger.info(f"CV saved (Drive/Local): {data.get('cv_saved')}")
+                logger.info(f"Email sent: {data.get('email_sent')}")
+                logger.info(f"CV saved: {data.get('cv_saved')}")
                 
                 # Analyze the response to determine if Google APIs worked
                 email_sent = data.get('email_sent', False)
@@ -247,12 +317,20 @@ startxref
                 else:
                     logger.info("❌ GOOGLE APIS LIKELY NOT WORKING")
                 
+                # Critical verification points
+                joan_email_expected = email_sent  # Should receive email at joan@pymetra.com
+                google_sheets_expected = 'Sheets' in message  # Should save to Google Sheets
+                google_drive_expected = 'Drive' in message  # Should save to Google Drive
+                
                 return {
                     'success': True, 
                     'data': data,
                     'google_apis_working': google_apis_working,
                     'email_sent': email_sent,
-                    'cv_saved': cv_saved
+                    'cv_saved': cv_saved,
+                    'joan_email_expected': joan_email_expected,
+                    'google_sheets_expected': google_sheets_expected,
+                    'google_drive_expected': google_drive_expected
                 }
             else:
                 logger.error(f"=== REGISTRATION FAILED ===")
@@ -265,7 +343,7 @@ startxref
                 }
                 
         except Exception as e:
-            logger.error(f"=== OAUTH VERIFICATION TEST FAILED ===")
+            logger.error(f"=== EXTERNAL REGISTRATION TEST FAILED ===")
             logger.error(f"Exception: {str(e)}")
             logger.error(f"Exception type: {type(e).__name__}")
             return {'success': False, 'error': str(e)}
