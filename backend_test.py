@@ -439,13 +439,13 @@ startxref
         return results
 
 def main():
-    """Main test execution - OAuth Verification Focus"""
+    """Main test execution - Complete External Testing"""
     tester = PymetraBackendTester()
-    results = tester.run_oauth_verification_tests()
+    results = tester.run_complete_external_tests()
     
     # Print final summary
     print("\n" + "="*80)
-    print("PYMETRA OAUTH VERIFICATION TEST RESULTS")
+    print("PYMETRA COMPLETE EXTERNAL TEST RESULTS")
     print("="*80)
     
     total_tests = len(results)
@@ -468,12 +468,26 @@ def main():
             auth_data = result.get('data', {})
             print(f"  Authenticated: {auth_data.get('authenticated', False)}")
         
-        if test_name == 'oauth_verification_registration' and result.get('success'):
+        if test_name == 'admin_panel_updated' and result.get('success'):
+            print(f"  Has CV Download: {result.get('has_download_cv', False)}")
+            print(f"  Has CV Migration: {result.get('has_migrate_cvs', False)}")
+            print(f"  Has Google Drive: {result.get('has_google_drive', False)}")
+        
+        if test_name == 'cv_migration' and result.get('success'):
+            print(f"  Migrated: {result.get('migrated', 0)}")
+            print(f"  Already in Drive: {result.get('already_in_drive', 0)}")
+            print(f"  Failed: {result.get('failed', 0)}")
+            print(f"  Total: {result.get('total', 0)}")
+        
+        if test_name == 'external_registration' and result.get('success'):
             reg_data = result.get('data', {})
             print(f"  Registration ID: {reg_data.get('registration_id', 'N/A')}")
             print(f"  Email Sent: {result.get('email_sent', False)}")
             print(f"  CV Saved: {result.get('cv_saved', False)}")
             print(f"  Google APIs Working: {result.get('google_apis_working', False)}")
+            print(f"  Joan Email Expected: {result.get('joan_email_expected', False)}")
+            print(f"  Google Sheets Expected: {result.get('google_sheets_expected', False)}")
+            print(f"  Google Drive Expected: {result.get('google_drive_expected', False)}")
         
         if 'database_count' in test_name and result.get('success'):
             count = result.get('count', 0)
@@ -483,18 +497,21 @@ def main():
     
     # Final determination
     oauth_authenticated = results.get('oauth_status', {}).get('authenticated', False)
-    registration_success = results.get('oauth_verification_registration', {}).get('success', False)
-    google_apis_working = results.get('oauth_verification_registration', {}).get('google_apis_working', False)
+    admin_features = results.get('admin_panel_updated', {}).get('success', False)
+    migration_working = results.get('cv_migration', {}).get('success', False)
+    registration_success = results.get('external_registration', {}).get('success', False)
+    google_apis_working = results.get('external_registration', {}).get('google_apis_working', False)
     
     print("\n🔍 FINAL DETERMINATION:")
-    if oauth_authenticated and registration_success and google_apis_working:
-        print("✅ OAUTH AND GOOGLE APIS ARE WORKING CORRECTLY")
+    if oauth_authenticated and admin_features and migration_working and registration_success and google_apis_working:
+        print("✅ COMPLETE SYSTEM WORKING PERFECTLY")
+        print("✅ Joan should receive email at joan@pymetra.com")
+        print("✅ Data should appear in Google Sheets: 1aSMXxycQLw0aSwFE87Pg_cRS8nlbc51-nl95G7WaujE")
+        print("✅ CV should appear in Google Drive: 186gcyPs1V2iUqB9CW5nRDB1H0G0I9a1v")
     elif oauth_authenticated and registration_success:
-        print("⚠️  OAUTH WORKS BUT GOOGLE APIS STATUS UNCLEAR")
-    elif oauth_authenticated:
-        print("⚠️  OAUTH AUTHENTICATED BUT REGISTRATION FAILED")
+        print("⚠️  SYSTEM MOSTLY WORKING - SOME FEATURES MAY NEED VERIFICATION")
     else:
-        print("❌ OAUTH NOT WORKING - GOOGLE APIS CANNOT FUNCTION")
+        print("❌ SYSTEM HAS CRITICAL ISSUES")
     
     return results
 
