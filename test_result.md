@@ -335,11 +335,15 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Complete external testing verification"
+    - "Admin Panel Basic Authentication Security"
+    - "CV Migration to Google Drive"
+    - "Admin CV Download Functionality"
   stuck_tasks: 
     - "CV Migration to Google Drive"
+    - "Admin Panel Basic Authentication Security"
+    - "Admin CV Download Functionality"
   test_all: false
-  test_priority: "external_verification_complete"
+  test_priority: "security_critical_first"
 
 agent_communication:
   - agent: "main"
