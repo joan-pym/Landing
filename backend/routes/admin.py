@@ -280,6 +280,71 @@ async def admin_dashboard():
                     button.textContent = '☁️ Migrar CVs (Temporal)';
                 }
             }
+            
+            async function getCvInfo(registrationId) {
+                if (!checkAdminAuth()) return;
+                
+                try {
+                    // Try multiple approaches to get CV info
+                    let cvInfo = null;
+                    
+                    // Approach 1: Try direct endpoint (might not work due to proxy)
+                    try {
+                        const response = await fetch(`/api/admin/get-cv/${registrationId}`);
+                        if (response.ok) {
+                            cvInfo = await response.json();
+                        }
+                    } catch (e) {
+                        console.log('Direct endpoint failed:', e);
+                    }
+                    
+                    // Approach 2: Use working CSV endpoint to get data
+                    if (!cvInfo) {
+                        try {
+                            const csvResponse = await fetch('/api/admin/export/csv');
+                            if (csvResponse.ok) {
+                                const csvText = await csvResponse.text();
+                                const lines = csvText.split('\\n');
+                                
+                                // Find the registration in CSV
+                                for (let line of lines) {
+                                    if (line.includes(registrationId)) {
+                                        const parts = line.split(',');
+                                        cvInfo = {
+                                            registration_id: registrationId,
+                                            user_name: parts[1] || 'No disponible',
+                                            user_email: parts[2] || 'No disponible',
+                                            filename: parts[6] || 'No disponible',
+                                            timestamp: parts[4] || 'No disponible'
+                                        };
+                                        break;
+                                    }
+                                }
+                            }
+                        } catch (e) {
+                            console.log('CSV approach failed:', e);
+                        }
+                    }
+                    
+                    // Show info
+                    if (cvInfo) {
+                        const message = `📄 INFORMACIÓN DEL CV\\n\\n` +
+                                      `👤 Usuario: ${cvInfo.user_name}\\n` +
+                                      `📧 Email: ${cvInfo.user_email}\\n` +
+                                      `📄 Archivo: ${cvInfo.filename}\\n` +
+                                      `📅 Fecha: ${cvInfo.timestamp}\\n\\n` +
+                                      `💾 Estado: Guardado en base de datos\\n` +
+                                      `☁️ Para migrar a Google Drive, use el botón de migración`;
+                        
+                        alert(message);
+                    } else {
+                        alert('❌ No se pudo obtener información del CV');
+                    }
+                    
+                } catch (error) {
+                    alert(`❌ Error obteniendo información: ${error.message}`);
+                }
+            }
             </script>
         </body>
         </html>
