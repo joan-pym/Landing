@@ -245,7 +245,7 @@ async def admin_dashboard(credentials: HTTPBasicCredentials = Depends(verify_adm
         raise HTTPException(status_code=500, detail="Error loading dashboard")
 
 @router.get("/export/csv")
-async def export_csv():
+async def export_csv(credentials: HTTPBasicCredentials = Depends(verify_admin_credentials)):
     """Export all registrations to CSV"""
     try:
         registrations = await db_service.get_all_registrations(limit=1000)
