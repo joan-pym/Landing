@@ -38,29 +38,81 @@ class PymetraBackendTester:
             'Authorization': f'Basic {encoded_credentials}'
         }
         
-    def test_auth_status(self):
-        """Test 1: Google APIs Authentication Status"""
-        logger.info("=== TEST 1: Authentication Status ===")
+    def test_admin_panel_security_without_auth(self):
+        """Test 1: Admin Panel Security - WITHOUT credentials (should return 401)"""
+        logger.info("=== TEST 1: Admin Panel Security - NO AUTH ===")
         try:
-            response = self.session.get(f"{self.base_url}/api/auth/status", timeout=30)
+            response = self.session.get(f"{self.base_url}/api/admin/", timeout=30)
             logger.info(f"Status Code: {response.status_code}")
-            logger.info(f"Response: {response.text}")
+            logger.info(f"Response Headers: {dict(response.headers)}")
+            logger.info(f"Response Length: {len(response.text)} characters")
             
-            if response.status_code == 200:
-                data = response.json()
-                is_authenticated = data.get('authenticated', False)
-                logger.info(f"Google APIs Authenticated: {is_authenticated}")
+            if response.status_code == 401:
+                logger.info("✅ SECURITY WORKING: Admin panel correctly requires authentication")
                 return {
                     'success': True,
-                    'authenticated': is_authenticated,
-                    'data': data
+                    'security_working': True,
+                    'status_code': response.status_code
                 }
             else:
-                logger.error(f"Auth status check failed: {response.status_code}")
-                return {'success': False, 'error': f"HTTP {response.status_code}"}
+                logger.error(f"❌ SECURITY BREACH: Admin panel accessible without auth (status: {response.status_code})")
+                return {
+                    'success': False, 
+                    'security_working': False,
+                    'status_code': response.status_code,
+                    'error': f"Expected 401, got {response.status_code}"
+                }
                 
         except Exception as e:
-            logger.error(f"Auth status test failed: {str(e)}")
+            logger.error(f"Admin panel security test failed: {str(e)}")
+            return {'success': False, 'error': str(e)}
+    
+    def test_admin_panel_security_with_auth(self):
+        """Test 2: Admin Panel Security - WITH credentials (should work)"""
+        logger.info("=== TEST 2: Admin Panel Security - WITH AUTH ===")
+        try:
+            headers = self.auth_headers.copy()
+            response = self.session.get(f"{self.base_url}/api/admin/", headers=headers, timeout=30)
+            logger.info(f"Status Code: {response.status_code}")
+            logger.info(f"Response Headers: {dict(response.headers)}")
+            logger.info(f"Response Length: {len(response.text)} characters")
+            
+            if response.status_code == 200:
+                # Check if it's HTML content with admin panel
+                is_html = 'html' in response.text.lower()
+                has_pymetra = 'pymetra' in response.text.lower()
+                has_admin = 'admin' in response.text.lower()
+                logger.info(f"Is HTML: {is_html}")
+                logger.info(f"Contains Pymetra: {has_pymetra}")
+                logger.info(f"Contains Admin: {has_admin}")
+                
+                if is_html and has_pymetra and has_admin:
+                    logger.info("✅ AUTHENTICATION WORKING: Admin panel accessible with credentials")
+                    return {
+                        'success': True,
+                        'authenticated_access': True,
+                        'is_html': is_html,
+                        'has_pymetra': has_pymetra,
+                        'has_admin': has_admin
+                    }
+                else:
+                    logger.error("❌ UNEXPECTED RESPONSE: Got 200 but content doesn't look like admin panel")
+                    return {
+                        'success': False,
+                        'authenticated_access': False,
+                        'error': "Response doesn't contain expected admin panel content"
+                    }
+            else:
+                logger.error(f"❌ AUTHENTICATION FAILED: Expected 200, got {response.status_code}")
+                return {
+                    'success': False,
+                    'authenticated_access': False,
+                    'status_code': response.status_code,
+                    'error': f"Expected 200, got {response.status_code}"
+                }
+                
+        except Exception as e:
+            logger.error(f"Admin panel auth test failed: {str(e)}")
             return {'success': False, 'error': str(e)}
     
     def test_integrations_endpoint(self):
