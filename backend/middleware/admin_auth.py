@@ -28,7 +28,7 @@ class AdminAuthMiddleware(BaseHTTPMiddleware):
         logger.info(f"AdminAuthMiddleware: Headers: {dict(request.headers)}")
         
         # Only apply to admin routes
-        if not request.url.path.startswith('/api/admin'):
+        if not request.url.path.startswith('/admin'):
             logger.info(f"AdminAuthMiddleware: Skipping non-admin route: {request.url.path}")
             return await call_next(request)
         
